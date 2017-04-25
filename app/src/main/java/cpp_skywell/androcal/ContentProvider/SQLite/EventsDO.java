@@ -6,21 +6,22 @@ import java.util.Date;
  * Created by zhangliang on 4/23/17.
  */
 
-public class EventDO {
+public class EventsDO {
     public static final int STATUS_NORMAL = 1;
     public static final int STATUS_CANCEL = 2;
 
-    protected int id;
+
+    protected long id;
     protected String name;
     protected Date start;
     protected Date end;
     protected int statue;
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -54,5 +55,13 @@ public class EventDO {
 
     public void setStatue(int statue) {
         this.statue = statue;
+    }
+
+    public String toString() {
+        return "id=" + this.id + "; " +
+                "name=" + this.name + "; " +
+                "start=" + this.start.toString() + "; " +
+                "end=" + this.end.toString() + "; " +
+                "status=" + this.statue + "; ";
     }
 }
