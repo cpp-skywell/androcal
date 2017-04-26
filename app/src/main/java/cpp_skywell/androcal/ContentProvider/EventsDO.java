@@ -1,4 +1,4 @@
-package cpp_skywell.androcal.ContentProvider.SQLite;
+package cpp_skywell.androcal.ContentProvider;
 
 import java.util.Date;
 
@@ -9,13 +9,18 @@ import java.util.Date;
 public class EventsDO {
     public static final int STATUS_NORMAL = 1;
     public static final int STATUS_CANCEL = 2;
+    public static enum Source {
+        NONE, GOOGLE, OTHER;
+    };
 
 
     protected long id;
     protected String name;
     protected Date start;
     protected Date end;
-    protected int statue;
+    protected int status;
+    protected Source source;
+    protected String refId;
 
     public long getId() {
         return id;
@@ -49,12 +54,28 @@ public class EventsDO {
         this.end = end;
     }
 
-    public int getStatue() {
-        return statue;
+    public int getStatus() {
+        return status;
     }
 
-    public void setStatue(int statue) {
-        this.statue = statue;
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public Source getSource() {
+        return source;
+    }
+
+    public void setSource(Source source) {
+        this.source = source;
+    }
+
+    public String getRefId() {
+        return refId;
+    }
+
+    public void setRefId(String refId) {
+        this.refId = refId;
     }
 
     public String toString() {
@@ -62,6 +83,8 @@ public class EventsDO {
                 "name=" + this.name + "; " +
                 "start=" + this.start.toString() + "; " +
                 "end=" + this.end.toString() + "; " +
-                "status=" + this.statue + "; ";
+                "refId=" + this.refId + "; " +
+                "source=" + this.source + "; " +
+                "status=" + this.status + "; ";
     }
 }

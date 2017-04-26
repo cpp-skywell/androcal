@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import cpp_skywell.androcal.ContentProvider.EventsDO;
+
 /**
  * Created by zhangliang on 4/23/17.
  */
@@ -22,6 +24,8 @@ public class EventsDAO {
                     Table.COLUMN_NAME_START + " INTEGER," +
                     Table.COLUMN_NAME_END + " INTEGER," +
                     Table.COLUMN_NAME_RECURRENCE + " TEXT," +
+                    Table.COLUMN_NAME_SOURCE + " TEXT," +
+                    Table.COLUMN_NAME_REFID + " TEXT," +
                     Table.COLUMN_NAME_STATUS + " INTEGER)";
 
     public static final String SQL_DROP_TABLE =
@@ -54,7 +58,9 @@ public class EventsDAO {
         values.put(Table.COLUMN_NAME_NAME, event.getName());
         values.put(Table.COLUMN_NAME_START, event.getStart().getTime());
         values.put(Table.COLUMN_NAME_END, event.getEnd().getTime());
-        values.put(Table.COLUMN_NAME_STATUS, event.getStatue());
+        values.put(Table.COLUMN_NAME_STATUS, event.getStatus());
+        values.put(Table.COLUMN_NAME_REFID, event.getRefId());
+        values.put(Table.COLUMN_NAME_SOURCE, event.getSource().name());
 
         return db.insert(Table.NAME, null, values);
     }
@@ -69,7 +75,9 @@ public class EventsDAO {
                 Table.COLUMN_NAME_START,
                 Table.COLUMN_NAME_START,
                 Table.COLUMN_NAME_END,
-                Table.COLUMN_NAME_STATUS
+                Table.COLUMN_NAME_STATUS,
+                Table.COLUMN_NAME_SOURCE,
+                Table.COLUMN_NAME_REFID
         };
 
         // Filters
@@ -122,7 +130,9 @@ public class EventsDAO {
                 Table.COLUMN_NAME_START,
                 Table.COLUMN_NAME_START,
                 Table.COLUMN_NAME_END,
-                Table.COLUMN_NAME_STATUS
+                Table.COLUMN_NAME_STATUS,
+                Table.COLUMN_NAME_SOURCE,
+                Table.COLUMN_NAME_REFID
         };
 
         // Filters
@@ -180,7 +190,13 @@ public class EventsDAO {
         event.setEnd(index == -1? null: new Date(cursor.getLong(index)));
 
         index = cursor.getColumnIndex(Table.COLUMN_NAME_STATUS);
-        event.setStatue(index == -1? EventsDO.STATUS_NORMAL: cursor.getInt(index));
+        event.setStatus(index == -1? EventsDO.STATUS_NORMAL: cursor.getInt(index));
+
+        index = cursor.getColumnIndex(Table.COLUMN_NAME_SOURCE);
+        event.setSource(index == -1? EventsDO.Source.NONE: EventsDO.Source.valueOf(cursor.getString(index)));
+
+        index = cursor.getColumnIndex(Table.COLUMN_NAME_REFID);
+        event.setRefId(index == -1? null: cursor.getString(index));
 
         return event;
     }
@@ -196,5 +212,8 @@ public class EventsDAO {
         public static final String COLUMN_NAME_END = "end";
         public static final String COLUMN_NAME_STATUS = "status";
         public static final String COLUMN_NAME_RECURRENCE = "recurrence";
+        public static final String COLUMN_NAME_SOURCE = "source";
+        public static final String COLUMN_NAME_REFID = "ref_id";
+
     }
 }
