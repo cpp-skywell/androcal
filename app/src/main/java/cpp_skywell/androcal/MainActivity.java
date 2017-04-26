@@ -5,12 +5,15 @@ import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.calendar.CalendarScopes;
 
@@ -19,15 +22,17 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
 import cpp_skywell.androcal.ContentProvider.SQLite.DBOpenHelper;
 import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
-import cpp_skywell.androcal.ContentProvider.SQLite.EventsDO;
+import cpp_skywell.androcal.ContentProvider.EventsDO;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 public class MainActivity extends AppCompatActivity {
-    static final int REQUEST_ACCOUNT_PICKER = 1000;
-    static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
+    public static final int REQUEST_ACCOUNT_PICKER = 1000;
+    public static final int REQUEST_AUTHORIZATION = 1001;
+    public static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = { CalendarScopes.CALENDAR_READONLY };
@@ -58,18 +63,21 @@ public class MainActivity extends AppCompatActivity {
                 .setBackOff(new ExponentialBackOff());   // Check login status
 
         this.chooseAccount();
-//        Log.d("Login", mCredential.getSelectedAccountName());
     }
 
     @AfterPermissionGranted(REQUEST_PERMISSION_GET_ACCOUNTS)
     private void chooseAccount() {
         if (EasyPermissions.hasPermissions(
                 this, Manifest.permission.GET_ACCOUNTS)) {
-            if (!this.isLoggedIn()) {
+            String accountName = getPreferences(Context.MODE_PRIVATE)
+                    .getString(PREF_ACCOUNT_NAME, null);
+            if (accountName == null) {
                 // Start a dialog from which the user can choose an account
                 startActivityForResult(
                         mCredential.newChooseAccountIntent(),
                         REQUEST_ACCOUNT_PICKER);
+            } else {
+                this.setAccountName(accountName);
             }
         } else {
             // Request the GET_ACCOUNTS permission via a user dialog
@@ -80,6 +88,13 @@ public class MainActivity extends AppCompatActivity {
                     Manifest.permission.GET_ACCOUNTS);
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
 
     /**
      * Callback for startActivityForResult
@@ -102,27 +117,27 @@ public class MainActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString(PREF_ACCOUNT_NAME, accountName);
                         editor.apply();
-                        mCredential.setSelectedAccountName(accountName);
+                        this.setAccountName(accountName);
                     }
                 }
+                break;
+            case REQUEST_AUTHORIZATION:
                 break;
         }
     }
 
-    private boolean isLoggedIn() {
-        String accountName = getPreferences(Context.MODE_PRIVATE)
-                .getString(PREF_ACCOUNT_NAME, null);
-        if (accountName != null) {
-            Log.d("login", accountName);
-            mCredential.setSelectedAccountName(accountName);
-            return true;
-        } else {
-            return false;
-        }
+    private void setAccountName(String accountName) {
+        mCredential.setSelectedAccountName(accountName);
+        GEventsDAO.getInstance().init(mCredential);
+        Log.d("setAccount", accountName);
     }
 
     public void testClick(View view) {
-        testDatabase();
+        testGoogle();
+    }
+
+    private void testGoogle() {
+        new TestCaller().execute();
     }
 
     private void testDatabase() {
@@ -139,7 +154,9 @@ public class MainActivity extends AppCompatActivity {
             event.setName("test event#" + i);
             event.setStart(new Date(now.getTime() + i*86400*1000));
             event.setEnd(new Date(now.getTime() + (i + 1)*86400*1000)); // 1 days later
-            event.setStatue(EventsDO.STATUS_NORMAL);
+            event.setRefId(String.valueOf(i));
+            event.setSource(EventsDO.Source.GOOGLE);
+            event.setStatus(EventsDO.STATUS_NORMAL);
 
             // INSERT
             long rowId = dao.add(event);
@@ -168,5 +185,46 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // TODO: Test UPDATE
+    }
+
+    private class TestCaller extends AsyncTask<Void, Void, Void> {
+
+        public TestCaller() {
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            GEventsDAO dao = GEventsDAO.getInstance();
+
+            try {
+                dao.checkAuth();
+            } catch(UserRecoverableAuthIOException e) {
+                startActivityForResult(
+                        e.getIntent(),
+                        REQUEST_AUTHORIZATION);
+
+            } catch (Exception e) {
+                Log.d("TestCaller", "", e);
+            }
+
+            try {
+                // Test getByDateRange
+                Date now = new Date();
+                List<EventsDO> eventList = dao.getByDateRange(
+                        new Date(now.getTime() - 10 * 86400 * 1000),
+                        new Date(now.getTime() + 10 * 86400 * 1000)
+                );
+                Iterator<EventsDO> it = eventList.iterator();
+                while(it.hasNext()) {
+                    EventsDO event = it.next();
+                    Log.d("TestCaller", event.toString());
+                }
+
+            } catch (Exception e) {
+                Log.d("TestCaller", "", e);
+            }
+            return null;
+        }
+
     }
 }
