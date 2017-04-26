@@ -1,5 +1,6 @@
 package cpp_skywell.androcal;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,6 +33,18 @@ public class MainActivity extends AppCompatActivity {
         // Init database and DAO
         this.mDbHelper = new DBOpenHelper(this.getApplicationContext());
         EventsDAO.getInstance().init(this.mDbHelper);
+
+        // Check login status
+        if (!this.isLoggedIn()) {
+            // Go to Login activity
+            Intent intent = new Intent(this, LoginActivity.class);
+            this.startActivity(intent);
+        }
+    }
+
+    private boolean isLoggedIn() {
+        // TODO: check login status
+        return false;
     }
 
     public void testClick(View view) {
