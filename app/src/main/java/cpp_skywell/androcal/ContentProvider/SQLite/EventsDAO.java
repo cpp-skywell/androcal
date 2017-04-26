@@ -21,6 +21,7 @@ public class EventsDAO {
                     Table.COLUMN_NAME_NAME + " TEXT," +
                     Table.COLUMN_NAME_START + " INTEGER," +
                     Table.COLUMN_NAME_END + " INTEGER," +
+                    Table.COLUMN_NAME_RECURRENCE + " TEXT," +
                     Table.COLUMN_NAME_STATUS + " INTEGER)";
 
     public static final String SQL_DROP_TABLE =
@@ -194,5 +195,6 @@ public class EventsDAO {
         public static final String COLUMN_NAME_START = "start";
         public static final String COLUMN_NAME_END = "end";
         public static final String COLUMN_NAME_STATUS = "status";
+        public static final String COLUMN_NAME_RECURRENCE = "recurrence";
     }
 }
