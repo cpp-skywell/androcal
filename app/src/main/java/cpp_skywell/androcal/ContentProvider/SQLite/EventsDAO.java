@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.support.design.widget.TabLayout;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,6 +27,7 @@ public class EventsDAO {
                     Table.COLUMN_NAME_RECURRENCE + " TEXT," +
                     Table.COLUMN_NAME_SOURCE + " TEXT," +
                     Table.COLUMN_NAME_REFID + " TEXT," +
+                    Table.COLUMN_NAME_DIRTY + " INTEGER," +
                     Table.COLUMN_NAME_STATUS + " INTEGER)";
 
     public static final String SQL_DROP_TABLE =
@@ -61,7 +63,7 @@ public class EventsDAO {
         values.put(Table.COLUMN_NAME_STATUS, event.getStatus());
         values.put(Table.COLUMN_NAME_REFID, event.getRefId());
         values.put(Table.COLUMN_NAME_SOURCE, event.getSource().name());
-
+        values.put(Table.COLUMN_NAME_DIRTY, event.isDirty()? 1: 0);
         return db.insert(Table.NAME, null, values);
     }
 
@@ -77,7 +79,8 @@ public class EventsDAO {
                 Table.COLUMN_NAME_END,
                 Table.COLUMN_NAME_STATUS,
                 Table.COLUMN_NAME_SOURCE,
-                Table.COLUMN_NAME_REFID
+                Table.COLUMN_NAME_REFID,
+                Table.COLUMN_NAME_DIRTY
         };
 
         // Filters
@@ -106,18 +109,118 @@ public class EventsDAO {
         return event;
     }
 
-    public void delete(long id) {
+    public int deleteById(long id) {
         SQLiteDatabase db = this.getWriter();
 
         // Filters
         String selection = Table._ID + "=?";
         String[] selectionArgs = {String.valueOf(id)};
 
-        db.delete(Table.NAME, selection, selectionArgs);
+        // Execute
+        return db.delete(Table.NAME, selection, selectionArgs);
     }
 
-    public void update(EventsDO newEvent) {
-        // TODO
+    public int deleteByRefId(EventsDO.Source source, String refId) {
+        SQLiteDatabase db = this.getWriter();
+
+        // Filters
+        String selection = Table.COLUMN_NAME_SOURCE + "=? AND " + Table.COLUMN_NAME_REFID + "=?";
+        String[] selectionArgs = {source.name(), refId};
+
+        // Execute
+        return db.delete(Table.NAME, selection, selectionArgs);
+    }
+
+    public int updateById(EventsDO newEvent) {
+        SQLiteDatabase db = this.getWriter();
+
+        // New values
+        ContentValues values = new ContentValues();
+        values.put(Table.COLUMN_NAME_NAME, newEvent.getName());
+        values.put(Table.COLUMN_NAME_START, newEvent.getStart().getTime());
+        values.put(Table.COLUMN_NAME_END, newEvent.getEnd().getTime());
+        values.put(Table.COLUMN_NAME_STATUS, newEvent.getStatus());
+        values.put(Table.COLUMN_NAME_REFID, newEvent.getRefId());
+        values.put(Table.COLUMN_NAME_SOURCE, newEvent.getSource().name());
+        values.put(Table.COLUMN_NAME_DIRTY, newEvent.isDirty()? 1: 0);
+
+        // Filters
+        String selection = Table._ID + "=?";
+        String[] selectionArgs = {String.valueOf(newEvent.getId())};
+
+        // Execute
+        return db.update(
+                Table.NAME,
+                values,
+                selection,
+                selectionArgs);
+    }
+
+    public int updateByRefId(EventsDO newEvent) {
+        SQLiteDatabase db = this.getWriter();
+
+        // New values
+        ContentValues values = new ContentValues();
+        values.put(Table.COLUMN_NAME_NAME, newEvent.getName());
+        values.put(Table.COLUMN_NAME_START, newEvent.getStart().getTime());
+        values.put(Table.COLUMN_NAME_END, newEvent.getEnd().getTime());
+        values.put(Table.COLUMN_NAME_STATUS, newEvent.getStatus());
+        values.put(Table.COLUMN_NAME_DIRTY, newEvent.isDirty()? 1: 0);
+//        values.put(Table.COLUMN_NAME_REFID, newEvent.getRefId());
+//        values.put(Table.COLUMN_NAME_SOURCE, newEvent.getSource().name());
+
+        // Filters
+        String selection = Table.COLUMN_NAME_SOURCE + "=? AND " + Table.COLUMN_NAME_REFID + "=?";
+        String[] selectionArgs = {newEvent.getSource().name(), newEvent.getRefId()};
+
+        // Execute
+        return db.update(
+                Table.NAME,
+                values,
+                selection,
+                selectionArgs);
+    }
+
+    public List<EventsDO> getByDirty(boolean dirty) {
+        SQLiteDatabase db = this.getReader();
+
+        // Columns to return
+        String[] columns = {
+                Table._ID,
+                Table.COLUMN_NAME_NAME,
+                Table.COLUMN_NAME_START,
+                Table.COLUMN_NAME_START,
+                Table.COLUMN_NAME_END,
+                Table.COLUMN_NAME_STATUS,
+                Table.COLUMN_NAME_SOURCE,
+                Table.COLUMN_NAME_REFID,
+                Table.COLUMN_NAME_DIRTY
+        };
+
+        // Filters
+        String selection = Table.COLUMN_NAME_DIRTY + "=?";
+        String[] selectionArgs = {dirty? "1": "0"};
+
+        // Execute
+        Cursor cursor = db.query(
+                Table.NAME, // Table name
+                columns, // columns to return
+                selection, // filters for WHERE clause
+                selectionArgs, // values for selection
+                null, // group
+                null, // having
+                null // order by
+        );
+
+        // Fetch result
+        List<EventsDO> result = new ArrayList<EventsDO>();
+        while(cursor.moveToNext()) {
+            EventsDO event = this.mapColumns(cursor);
+            result.add(event);
+        }
+        cursor.close();
+
+        return result;
     }
 
     public List<EventsDO> getByDateRange(Date start, Date end) {
@@ -132,12 +235,17 @@ public class EventsDAO {
                 Table.COLUMN_NAME_END,
                 Table.COLUMN_NAME_STATUS,
                 Table.COLUMN_NAME_SOURCE,
-                Table.COLUMN_NAME_REFID
+                Table.COLUMN_NAME_REFID,
+                Table.COLUMN_NAME_DIRTY
+
         };
 
         // Filters
-        String tsStart = String.valueOf(start.getTime());
-        String tsEnd = String.valueOf(end.getTime());
+        long now = new Date().getTime();
+        long defaultDateStart = now - 365 * 86400 * 1000; // One year before
+        long defaultDataEnd = now + 365 * 86400 * 1000; // One year after
+        String tsStart = String.valueOf(start != null? start.getTime(): defaultDateStart);
+        String tsEnd = String.valueOf(end != null? end.getTime(): defaultDataEnd);
         String selection = Table.COLUMN_NAME_START + " BETWEEN ? AND ? OR " + Table.COLUMN_NAME_END + " BETWEEN ? AND ?";
         String[] selectionArgs = {tsStart, tsEnd, tsStart, tsEnd};
 
@@ -152,7 +260,7 @@ public class EventsDAO {
                 selectionArgs, // values for selection
                 null, // group
                 null, // having
-                null // order by
+                order // order by
         );
 
         // Fetch result
@@ -198,6 +306,9 @@ public class EventsDAO {
         index = cursor.getColumnIndex(Table.COLUMN_NAME_REFID);
         event.setRefId(index == -1? null: cursor.getString(index));
 
+        index = cursor.getColumnIndex(Table.COLUMN_NAME_DIRTY);
+        event.setDirty(index == -1? false: (cursor.getInt(index) == 1));
+
         return event;
     }
 
@@ -214,6 +325,7 @@ public class EventsDAO {
         public static final String COLUMN_NAME_RECURRENCE = "recurrence";
         public static final String COLUMN_NAME_SOURCE = "source";
         public static final String COLUMN_NAME_REFID = "ref_id";
+        public static final String COLUMN_NAME_DIRTY = "dirty";
 
     }
 }

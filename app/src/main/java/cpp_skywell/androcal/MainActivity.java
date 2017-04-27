@@ -2,7 +2,9 @@ package cpp_skywell.androcal;
 
 import android.Manifest;
 import android.accounts.AccountManager;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -17,10 +19,14 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.calendar.CalendarScopes;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 
 import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
 import cpp_skywell.androcal.ContentProvider.SQLite.DBOpenHelper;
@@ -35,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
     private static final String PREF_ACCOUNT_NAME = "accountName";
-    private static final String[] SCOPES = { CalendarScopes.CALENDAR_READONLY };
+    private static final String[] SCOPES = { CalendarScopes.CALENDAR_READONLY, CalendarScopes.CALENDAR };
 
     private DBOpenHelper mDbHelper = null;
     GoogleAccountCredential mCredential;
@@ -128,63 +134,59 @@ public class MainActivity extends AppCompatActivity {
 
     private void setAccountName(String accountName) {
         mCredential.setSelectedAccountName(accountName);
-        GEventsDAO.getInstance().init(mCredential);
+        GEventsDAO.getInstance().init(mCredential, getPreferences(Context.MODE_PRIVATE));
         Log.d("setAccount", accountName);
     }
 
-    public void testClick(View view) {
-        testGoogle();
+    public void onClickModify(View view) {
+        EventsDAO ldao = EventsDAO.getInstance();
+
+        // Add event
+        Date now = new Date();
+        EventsDO event = new EventsDO();
+        event.setName("test batch sync 1");
+        event.setStart(now);
+        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
+        event.setRefId("");
+        event.setSource(EventsDO.Source.NONE);
+        event.setStatus(EventsDO.STATUS_NORMAL);
+        event.setDirty(true);
+        ldao.add(event);
+
+        now = new Date(now.getTime() + 3600 * 1000);
+        event = new EventsDO();
+        event.setName("test batch sync 2");
+        event.setStart(now);
+        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
+        event.setRefId("");
+        event.setSource(EventsDO.Source.NONE);
+        event.setStatus(EventsDO.STATUS_NORMAL);
+        event.setDirty(true);
+        ldao.add(event);
     }
 
-    private void testGoogle() {
+    public void onClickSync(View view) {
         new TestCaller().execute();
     }
 
-    private void testDatabase() {
-        EventsDAO dao = EventsDAO.getInstance();
-        Date now = new Date();
-
-        // Init database
-        dao.dropTable();
-        dao.createTable();
-
-        // Test INSERT, SELECT by _ID
-        for (int i = 0; i < 10; i ++) {
-            EventsDO event = new EventsDO();
-            event.setName("test event#" + i);
-            event.setStart(new Date(now.getTime() + i*86400*1000));
-            event.setEnd(new Date(now.getTime() + (i + 1)*86400*1000)); // 1 days later
-            event.setRefId(String.valueOf(i));
-            event.setSource(EventsDO.Source.GOOGLE);
-            event.setStatus(EventsDO.STATUS_NORMAL);
-
-            // INSERT
-            long rowId = dao.add(event);
-            Log.d("db_test", "rowId = " + rowId);
-
-            // SELECT by _ID
-            event = dao.get(rowId);
-            Log.d("db_test", event.toString());
-        }
-
-        // Test SELECT by time range
-        Log.d("db_test", now.toString());
-        List<EventsDO> eventList = dao.getByDateRange(
-                now,
-                new Date(now.getTime() + 2*86400*1000)
-        );
-        Iterator<EventsDO> it = eventList.iterator();
-        while(it.hasNext()) {
-            Log.d("db_test", it.next().toString());
-        }
-
-        // Test DELETE
-        dao.delete(dao.get(1).getId());
-        if (dao.get(1) == null) {
-            Log.d("db_test", "DELETE successfully");
-        }
-
-        // TODO: Test UPDATE
+    public void onClickClearDB(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Alert")
+                .setMessage("Clear Database and SyncToken?");
+        builder.setPositiveButton("Clear", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                GEventsDAO.getInstance().clearDataStore();
+                EventsDAO.getInstance().dropTable();
+                EventsDAO.getInstance().createTable();
+                Log.d("Alert", "settings cleared");
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private class TestCaller extends AsyncTask<Void, Void, Void> {
@@ -192,12 +194,82 @@ public class MainActivity extends AppCompatActivity {
         public TestCaller() {
         }
 
-        @Override
-        protected Void doInBackground(Void... params) {
-            GEventsDAO dao = GEventsDAO.getInstance();
+        private void testSync() throws IOException {
+            GEventsDAO gdao = GEventsDAO.getInstance();
+            EventsDAO ldao = EventsDAO.getInstance();
 
             try {
-                dao.checkAuth();
+                // Get updated events from Google
+                List<EventsDO> eventList = gdao.getUpdatedList(50);
+                Iterator<EventsDO> it = eventList.iterator();
+
+                // Update local database
+                while(it.hasNext()) {
+                    EventsDO event = it.next();
+                    Log.d("testSync.NewEvent", event.toString());
+                    if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Events deleted on Google
+                        ldao.deleteByRefId(event.getSource(), event.getRefId());
+                    } else { // Events modified/added on Google
+                        if (ldao.updateByRefId(event) != 1) {
+                            ldao.add(event);
+                        }
+                    }
+                }
+
+                // Check sync result
+                eventList = ldao.getByDateRange(null, null);
+                it = eventList.iterator();
+                while(it.hasNext()) {
+                    Log.d("testSync.AllEvents", it.next().toString());
+                }
+            } catch (GEventsDAO.InvalidSyncTokenException e) {
+                // TODO: handle sync token expired case
+                Log.d("testSync", "Google sync token expired");
+            }
+        }
+
+        private void testSyncDirty() throws IOException {
+            GEventsDAO gdao = GEventsDAO.getInstance();
+            EventsDAO ldao = EventsDAO.getInstance();
+
+            // Get all dirties
+            List<EventsDO> dirties = ldao.getByDirty(true);
+
+            // Group by existence on Google
+            List<EventsDO> newEvents = new ArrayList<EventsDO>();
+            List<EventsDO> updateEvents = new ArrayList<EventsDO>();
+            Iterator<EventsDO> it = dirties.iterator();
+            while(it.hasNext()) {
+                EventsDO event = it.next();
+                if (event.getSource() == EventsDO.Source.NONE) {
+                    newEvents.add(event);
+                } else {
+                    updateEvents.add(event);
+                }
+            }
+
+            Iterator<EventsDO> itReturn = null;
+
+            // Batch sync new ones
+            itReturn = gdao.addBatch(newEvents).iterator();
+            while(itReturn.hasNext()) {
+                EventsDO newEvent = itReturn.next();
+                newEvent.setDirty(false);
+                ldao.updateById(newEvent);
+                Log.d("testSyncDirty.newEvent", newEvent.toString());
+            }
+
+            // TODO: Batch sync updated ones
+
+
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            // Trigger Google authentication
+            try {
+                GEventsDAO.getInstance().checkAuth();
             } catch(UserRecoverableAuthIOException e) {
                 startActivityForResult(
                         e.getIntent(),
@@ -208,18 +280,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try {
-                // Test getByDateRange
-                Date now = new Date();
-                List<EventsDO> eventList = dao.getByDateRange(
-                        new Date(now.getTime() - 10 * 86400 * 1000),
-                        new Date(now.getTime() + 10 * 86400 * 1000)
-                );
-                Iterator<EventsDO> it = eventList.iterator();
-                while(it.hasNext()) {
-                    EventsDO event = it.next();
-                    Log.d("TestCaller", event.toString());
-                }
-
+                this.testSyncDirty();
+                this.testSync();
             } catch (Exception e) {
                 Log.d("TestCaller", "", e);
             }

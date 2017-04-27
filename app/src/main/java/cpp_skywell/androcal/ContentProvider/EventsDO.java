@@ -1,12 +1,14 @@
 package cpp_skywell.androcal.ContentProvider;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * Created by zhangliang on 4/23/17.
  */
 
 public class EventsDO {
+    public static final int STATUS_UNKNOWN = 0;
     public static final int STATUS_NORMAL = 1;
     public static final int STATUS_CANCEL = 2;
     public static enum Source {
@@ -21,6 +23,7 @@ public class EventsDO {
     protected int status;
     protected Source source;
     protected String refId;
+    protected boolean dirty = false;
 
     public long getId() {
         return id;
@@ -43,7 +46,7 @@ public class EventsDO {
     }
 
     public void setStart(Date start) {
-        this.start = start;
+        this.start = new Date(start.getTime()/1000*1000);
     }
 
     public Date getEnd() {
@@ -51,7 +54,7 @@ public class EventsDO {
     }
 
     public void setEnd(Date end) {
-        this.end = end;
+        this.end = new Date(end.getTime()/1000*1000);
     }
 
     public int getStatus() {
@@ -78,13 +81,30 @@ public class EventsDO {
         this.refId = refId;
     }
 
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
+    }
+
+    public int localHash() {
+        int result = name.hashCode();
+        result = result * 37 + start.hashCode();
+        result = result * 37 + end.hashCode();
+        result = result * 37 + status;
+        return result;
+    }
+
     public String toString() {
         return "id=" + this.id + "; " +
-                "name=" + this.name + "; " +
-                "start=" + this.start.toString() + "; " +
-                "end=" + this.end.toString() + "; " +
-                "refId=" + this.refId + "; " +
-                "source=" + this.source + "; " +
-                "status=" + this.status + "; ";
+                "name=" + (this.name == null? "null": this.name) + "; " +
+                "start=" + (this.start == null? "null": this.start.toString()) + "; " +
+                "end=" + (this.end == null? "null": this.end.toString()) + "; " +
+                "refId=" + (this.refId == null? "null": this.refId) + "; " +
+                "source=" + (this.source == null? "null": this.source) + "; " +
+                "dirty=" + (this.dirty? "1": "0") + "; " +
+                "status=" + this.status;
     }
 }
