@@ -91,6 +91,70 @@ public class GEventsDAO {
         return eventNew;
     }
 
+    public void deleteBatch(List<EventsDO> eventList) throws IOException {
+        if (eventList == null || eventList.size() == 0) {
+            return;
+        }
+
+        JsonBatchCallback<Void> callback = new JsonBatchCallback<Void>() {
+            @Override
+            public void onSuccess(Void aVoid, HttpHeaders responseHeaders) throws IOException {
+            }
+
+            @Override
+            public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+                Log.d("delBatch", e.getMessage());
+            }
+        };
+        BatchRequest batch = this.mService.batch();
+
+        Iterator<EventsDO> itRequest = eventList.iterator();
+        while (itRequest.hasNext()) {
+            EventsDO event = itRequest.next();
+            this.mService.events().delete(CALENDAR_ID, event.getRefId()).queue(batch, callback);
+        }
+        batch.execute();
+    }
+
+    public List<EventsDO> updateBatch(List<EventsDO> eventList) throws IOException {
+        List<EventsDO> events = new ArrayList<EventsDO>();
+        if (eventList == null || eventList.size() == 0) {
+            return events;
+        }
+
+        BatchCallback callback = new BatchCallback();
+        BatchRequest batch = this.mService.batch();
+
+        Iterator<EventsDO> itRequest = eventList.iterator();
+        while(itRequest.hasNext()) {
+            EventsDO event = itRequest.next();
+
+            Event gevent = new Event();
+            gevent.setSummary(event.getName());
+            gevent.setStart(new EventDateTime()
+                    .setDateTime(new DateTime(event.getStart().getTime()))
+                    .setTimeZone(TimeZone.getDefault().getID())
+            );
+            gevent.setEnd(new EventDateTime()
+                    .setDateTime(new DateTime(event.getEnd().getTime()))
+                    .setTimeZone(TimeZone.getDefault().getID())
+            );
+            this.mService.events().update(CALENDAR_ID, event.getRefId(), gevent).queue(batch, callback);
+        }
+        batch.execute();
+
+        // The data on Google is exactly the same as local
+        // So just set dirty => false
+        itRequest = eventList.iterator();
+        while(itRequest.hasNext()) {
+            EventsDO event = itRequest.next();
+            event.setDirty(false);
+            events.add(event);
+        }
+
+        return events;
+    }
+
     public List<EventsDO> addBatch(List<EventsDO> eventList) throws IOException {
         List<EventsDO> events = new ArrayList<EventsDO>();
         if (eventList == null || eventList.size() == 0) {
@@ -121,6 +185,7 @@ public class GEventsDAO {
         }
         batch.execute();
 
+        // No refId in local data, so we need to copy it from Google response
         Iterator<Event> itReturn = callback.result.iterator();
         while(itReturn.hasNext()) {
             EventsDO eventNew = this.mapValues(itReturn.next());
@@ -232,8 +297,22 @@ public class GEventsDAO {
         event.setRefId(item.getId());
         if (Status.fromString(item.getStatus()) != Status.CANCELLED) {
             event.setName(item.getSummary());
-            event.setStart(new Date(item.getStart().getDateTime().getValue()));
-            event.setEnd(new Date(item.getEnd().getDateTime().getValue()));
+
+            EventDateTime eDateTime = item.getStart();
+            if (eDateTime.getDateTime() != null) {
+                event.setStart(new Date(eDateTime.getDateTime().getValue()));
+            } else { // All day event
+                int tzShift = TimeZone.getDefault().getOffset(eDateTime.getDate().getValue());
+                event.setStart(new Date(eDateTime.getDate().getValue() - tzShift));
+            }
+
+            eDateTime = item.getEnd();
+            if (eDateTime.getDateTime() != null) {
+                event.setEnd(new Date(eDateTime.getDateTime().getValue()));
+            } else { // All day event, add 1day-0.001s
+                int tzShift = TimeZone.getDefault().getOffset(eDateTime.getDate().getValue());
+                event.setEnd(new Date( eDateTime.getDate().getValue() - tzShift ));
+            }
             event.setStatus(EventsDO.STATUS_NORMAL);
         } else {
             event.setStatus(EventsDO.STATUS_CANCEL);

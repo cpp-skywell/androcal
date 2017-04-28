@@ -142,27 +142,36 @@ public class MainActivity extends AppCompatActivity {
         EventsDAO ldao = EventsDAO.getInstance();
 
         // Add event
-        Date now = new Date();
-        EventsDO event = new EventsDO();
-        event.setName("test batch sync 1");
-        event.setStart(now);
-        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
-        event.setRefId("");
-        event.setSource(EventsDO.Source.NONE);
-        event.setStatus(EventsDO.STATUS_NORMAL);
-        event.setDirty(true);
-        ldao.add(event);
+//        Date now = new Date();
+//        EventsDO event = new EventsDO();
+//        event.setName("test batch sync 1");
+//        event.setStart(now);
+//        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
+//        event.setRefId("");
+//        event.setSource(EventsDO.Source.NONE);
+//        event.setStatus(EventsDO.STATUS_NORMAL);
+//        event.setDirty(true);
+//        ldao.add(event);
+//
+//        now = new Date(now.getTime() + 3600 * 1000);
+//        event = new EventsDO();
+//        event.setName("test batch sync 2");
+//        event.setStart(now);
+//        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
+//        event.setRefId("");
+//        event.setSource(EventsDO.Source.NONE);
+//        event.setStatus(EventsDO.STATUS_NORMAL);
+//        event.setDirty(true);
+//        ldao.add(event);
 
-        now = new Date(now.getTime() + 3600 * 1000);
-        event = new EventsDO();
-        event.setName("test batch sync 2");
-        event.setStart(now);
-        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
-        event.setRefId("");
-        event.setSource(EventsDO.Source.NONE);
-        event.setStatus(EventsDO.STATUS_NORMAL);
+        // Cancel event
+//        ldao.cancel(3);
+
+        // Update event
+        EventsDO event = ldao.get(3);
+        event.setEnd( new Date(event.getEnd().getTime() + 86400*1000) );
         event.setDirty(true);
-        ldao.add(event);
+        ldao.updateById(event);
     }
 
     public void onClickSync(View view) {
@@ -206,11 +215,11 @@ public class MainActivity extends AppCompatActivity {
                 // Update local database
                 while(it.hasNext()) {
                     EventsDO event = it.next();
-                    Log.d("testSync.NewEvent", event.toString());
+                    Log.d("testSync.new", event.toString());
                     if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Events deleted on Google
                         ldao.deleteByRefId(event.getSource(), event.getRefId());
                     } else { // Events modified/added on Google
-                        if (ldao.updateByRefId(event) != 1) {
+                        if (ldao.updateByRefId(event) == 0) {
                             ldao.add(event);
                         }
                     }
@@ -220,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
                 eventList = ldao.getByDateRange(null, null);
                 it = eventList.iterator();
                 while(it.hasNext()) {
-                    Log.d("testSync.AllEvents", it.next().toString());
+                    Log.d("testSync.all", it.next().toString());
                 }
             } catch (GEventsDAO.InvalidSyncTokenException e) {
                 // TODO: handle sync token expired case
@@ -235,20 +244,38 @@ public class MainActivity extends AppCompatActivity {
             // Get all dirties
             List<EventsDO> dirties = ldao.getByDirty(true);
 
-            // Group by existence on Google
+            // Group dirty events
             List<EventsDO> newEvents = new ArrayList<EventsDO>();
             List<EventsDO> updateEvents = new ArrayList<EventsDO>();
+            List<EventsDO> deleteEvents = new ArrayList<EventsDO>();
+            List<EventsDO> localDeleteEvents = new ArrayList<EventsDO>();
             Iterator<EventsDO> it = dirties.iterator();
             while(it.hasNext()) {
                 EventsDO event = it.next();
-                if (event.getSource() == EventsDO.Source.NONE) {
-                    newEvents.add(event);
-                } else {
-                    updateEvents.add(event);
+                if (event.getSource() == EventsDO.Source.NONE) { // Not exist on Google
+                    if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Deteleted locally
+                        localDeleteEvents.add(event); // Not need to update Google, just delete it locally
+                    } else { // Created locally, need to add on Google
+                        newEvents.add(event);
+                    }
+                } else { // Exists on Google
+                    if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Deleted locally, need to delete on Google
+                        deleteEvents.add(event);
+                    } else { // Updated locally, need to update Google
+                        updateEvents.add(event);
+                    }
                 }
             }
 
             Iterator<EventsDO> itReturn = null;
+
+            // Delete ones not exist on Google
+            it = localDeleteEvents.iterator();
+            while(it.hasNext()) {
+                EventsDO event = it.next();
+                ldao.deleteById(event.getId());
+                Log.d("testSyncDirty.ldel", event.toString());
+            }
 
             // Batch sync new ones
             itReturn = gdao.addBatch(newEvents).iterator();
@@ -256,17 +283,30 @@ public class MainActivity extends AppCompatActivity {
                 EventsDO newEvent = itReturn.next();
                 newEvent.setDirty(false);
                 ldao.updateById(newEvent);
-                Log.d("testSyncDirty.newEvent", newEvent.toString());
+                Log.d("testSyncDirty.new", newEvent.toString());
             }
 
-            // TODO: Batch sync updated ones
+            // Batch sync updated ones
+            itReturn = gdao.updateBatch(updateEvents).iterator();
+            while(itReturn.hasNext()) {
+                EventsDO newEvent = itReturn.next();
+                newEvent.setDirty(false);
+                ldao.updateById(newEvent);
+                Log.d("testSyncDirty.update", newEvent.toString());
+            }
+
+            // Batch sync deleted ones
+            gdao.deleteBatch(deleteEvents);
+            it = deleteEvents.iterator();
+            while(it.hasNext()) {
+                Log.d("testSyncDirty.del", it.next().toString());
+            }
 
 
         }
 
         @Override
         protected Void doInBackground(Void... params) {
-
             // Trigger Google authentication
             try {
                 GEventsDAO.getInstance().checkAuth();
@@ -280,6 +320,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try {
+                // Make sure upload data first
                 this.testSyncDirty();
                 this.testSync();
             } catch (Exception e) {

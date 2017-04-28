@@ -109,6 +109,30 @@ public class EventsDAO {
         return event;
     }
 
+    public int cancel(long eventId) {
+        return this.updateStatusById(eventId, EventsDO.STATUS_CANCEL);
+    }
+
+    public int updateStatusById(long id, int status) {
+        SQLiteDatabase db = this.getWriter();
+
+        // New values
+        ContentValues values = new ContentValues();
+        values.put(Table.COLUMN_NAME_DIRTY, 1);
+        values.put(Table.COLUMN_NAME_STATUS, status);
+
+        // Filters
+        String selection = Table._ID + "=?";
+        String[] selectionArgs = {String.valueOf(id)};
+
+        // Execute
+        return db.update(
+                Table.NAME,
+                values,
+                selection,
+                selectionArgs);
+    }
+
     public int deleteById(long id) {
         SQLiteDatabase db = this.getWriter();
 
@@ -246,8 +270,8 @@ public class EventsDAO {
         long defaultDataEnd = now + 365 * 86400 * 1000; // One year after
         String tsStart = String.valueOf(start != null? start.getTime(): defaultDateStart);
         String tsEnd = String.valueOf(end != null? end.getTime(): defaultDataEnd);
-        String selection = Table.COLUMN_NAME_START + " BETWEEN ? AND ? OR " + Table.COLUMN_NAME_END + " BETWEEN ? AND ?";
-        String[] selectionArgs = {tsStart, tsEnd, tsStart, tsEnd};
+        String selection = Table.COLUMN_NAME_STATUS + "<>? AND (" + Table.COLUMN_NAME_START + " BETWEEN ? AND ? OR " + Table.COLUMN_NAME_END + " BETWEEN ? AND ?)";
+        String[] selectionArgs = {String.valueOf(EventsDO.STATUS_CANCEL), tsStart, tsEnd, tsStart, tsEnd};
 
         // Sort order
         String order = Table.COLUMN_NAME_START + " ASC";
