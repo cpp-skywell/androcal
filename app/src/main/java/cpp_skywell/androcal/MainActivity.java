@@ -3,6 +3,9 @@ package cpp_skywell.androcal;
 import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,19 +22,14 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.calendar.CalendarScopes;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TimeZone;
 
 import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
 import cpp_skywell.androcal.ContentProvider.SQLite.DBOpenHelper;
 import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
 import cpp_skywell.androcal.ContentProvider.EventsDO;
+import cpp_skywell.androcal.Service.GoogleSyncService;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
@@ -69,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
                 .setBackOff(new ExponentialBackOff());   // Check login status
 
         this.chooseAccount();
+
     }
 
     @AfterPermissionGranted(REQUEST_PERMISSION_GET_ACCOUNTS)
@@ -128,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case REQUEST_AUTHORIZATION:
+                if (requestCode == RESULT_OK) {
+                    setupSyncService();
+                }
                 break;
         }
     }
@@ -136,6 +138,14 @@ public class MainActivity extends AppCompatActivity {
         mCredential.setSelectedAccountName(accountName);
         GEventsDAO.getInstance().init(mCredential, getPreferences(Context.MODE_PRIVATE));
         Log.d("setAccount", accountName);
+
+        // Check Google Auth
+        new TaskCheckAuth().execute();
+    }
+
+    private void setupSyncService() {
+        // Setup syncup service
+        GoogleSyncService.register(this.getApplicationContext());
     }
 
     public void onClickModify(View view) {
@@ -175,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickSync(View view) {
-        new TestCaller().execute();
+//        new TestCaller().execute();
     }
 
     public void onClickClearDB(View view) {
@@ -198,115 +208,10 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private class TestCaller extends AsyncTask<Void, Void, Void> {
-
-        public TestCaller() {
-        }
-
-        private void testSync() throws IOException {
-            GEventsDAO gdao = GEventsDAO.getInstance();
-            EventsDAO ldao = EventsDAO.getInstance();
-
-            try {
-                // Get updated events from Google
-                List<EventsDO> eventList = gdao.getUpdatedList(50);
-                Iterator<EventsDO> it = eventList.iterator();
-
-                // Update local database
-                while(it.hasNext()) {
-                    EventsDO event = it.next();
-                    Log.d("testSync.new", event.toString());
-                    if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Events deleted on Google
-                        ldao.deleteByRefId(event.getSource(), event.getRefId());
-                    } else { // Events modified/added on Google
-                        if (ldao.updateByRefId(event) == 0) {
-                            ldao.add(event);
-                        }
-                    }
-                }
-
-                // Check sync result
-                eventList = ldao.getByDateRange(null, null);
-                it = eventList.iterator();
-                while(it.hasNext()) {
-                    Log.d("testSync.all", it.next().toString());
-                }
-            } catch (GEventsDAO.InvalidSyncTokenException e) {
-                // TODO: handle sync token expired case
-                Log.d("testSync", "Google sync token expired");
-            }
-        }
-
-        private void testSyncDirty() throws IOException {
-            GEventsDAO gdao = GEventsDAO.getInstance();
-            EventsDAO ldao = EventsDAO.getInstance();
-
-            // Get all dirties
-            List<EventsDO> dirties = ldao.getByDirty(true);
-
-            // Group dirty events
-            List<EventsDO> newEvents = new ArrayList<EventsDO>();
-            List<EventsDO> updateEvents = new ArrayList<EventsDO>();
-            List<EventsDO> deleteEvents = new ArrayList<EventsDO>();
-            List<EventsDO> localDeleteEvents = new ArrayList<EventsDO>();
-            Iterator<EventsDO> it = dirties.iterator();
-            while(it.hasNext()) {
-                EventsDO event = it.next();
-                if (event.getSource() == EventsDO.Source.NONE) { // Not exist on Google
-                    if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Deteleted locally
-                        localDeleteEvents.add(event); // Not need to update Google, just delete it locally
-                    } else { // Created locally, need to add on Google
-                        newEvents.add(event);
-                    }
-                } else { // Exists on Google
-                    if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Deleted locally, need to delete on Google
-                        deleteEvents.add(event);
-                    } else { // Updated locally, need to update Google
-                        updateEvents.add(event);
-                    }
-                }
-            }
-
-            Iterator<EventsDO> itReturn = null;
-
-            // Delete ones not exist on Google
-            it = localDeleteEvents.iterator();
-            while(it.hasNext()) {
-                EventsDO event = it.next();
-                ldao.deleteById(event.getId());
-                Log.d("testSyncDirty.ldel", event.toString());
-            }
-
-            // Batch sync new ones
-            itReturn = gdao.addBatch(newEvents).iterator();
-            while(itReturn.hasNext()) {
-                EventsDO newEvent = itReturn.next();
-                newEvent.setDirty(false);
-                ldao.updateById(newEvent);
-                Log.d("testSyncDirty.new", newEvent.toString());
-            }
-
-            // Batch sync updated ones
-            itReturn = gdao.updateBatch(updateEvents).iterator();
-            while(itReturn.hasNext()) {
-                EventsDO newEvent = itReturn.next();
-                newEvent.setDirty(false);
-                ldao.updateById(newEvent);
-                Log.d("testSyncDirty.update", newEvent.toString());
-            }
-
-            // Batch sync deleted ones
-            gdao.deleteBatch(deleteEvents);
-            it = deleteEvents.iterator();
-            while(it.hasNext()) {
-                Log.d("testSyncDirty.del", it.next().toString());
-            }
-
-
-        }
+    private class TaskCheckAuth extends AsyncTask<Void, Void, Boolean> {
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Boolean doInBackground(Void... params) {
             // Trigger Google authentication
             try {
                 GEventsDAO.getInstance().checkAuth();
@@ -314,20 +219,21 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(
                         e.getIntent(),
                         REQUEST_AUTHORIZATION);
+                return false;
 
             } catch (Exception e) {
-                Log.d("TestCaller", "", e);
+                Log.d("TaskCheckAuth", "", e);
+                return false;
             }
 
-            try {
-                // Make sure upload data first
-                this.testSyncDirty();
-                this.testSync();
-            } catch (Exception e) {
-                Log.d("TestCaller", "", e);
-            }
-            return null;
+            return true;
         }
 
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (result) {
+                setupSyncService();
+            }
+        }
     }
 }
