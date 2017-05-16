@@ -3,9 +3,6 @@ package cpp_skywell.androcal;
 import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -206,6 +203,11 @@ public class MainActivity extends AppCompatActivity {
         });
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    public void onClickAddEvent(View view) {
+        Intent intent = new Intent(this, AddCalendarEventActivity.class);
+        startActivity(intent);
     }
 
     private class TaskCheckAuth extends AsyncTask<Void, Void, Boolean> {
