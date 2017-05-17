@@ -26,7 +26,8 @@
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
-        <activity android:name=".AddCalendarEventActivity"></activity>
+        <activity android:name=".AddCalendarEventActivity"
+            android:windowSoftInputMode="adjustNothing" />
     </application>
 
 </manifest>
