@@ -13,6 +13,8 @@ import java.util.Date;
 
 import cpp_skywell.androcal.ContentProvider.EventsDO;
 import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
+import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
+import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAOFactory;
 
 public class AddCalendarEventActivity extends AppCompatActivity {
 
@@ -87,12 +89,16 @@ public class AddCalendarEventActivity extends AppCompatActivity {
             event.setName(eventName);
             event.setStart(eventStartDate);
             event.setEnd(eventEndDate);
+            event.setRefId("");
+            event.setSource(EventsDO.Source.NONE);
+            event.setStatus(EventsDO.STATUS_NORMAL);
+            event.setDirty(true);
 
-            GEventsDAO gEventsDAO = GEventsDAO.getInstance();
-            gEventsDAO.add(event);
+//            GEventsDAO gEventsDAO = GEventsDAO.getInstance();
+//            gEventsDAO.add(event);
+            EventsDAO eventsDAO = EventsDAOFactory.create(this.getApplicationContext());
+            eventsDAO.add(event);
         } catch (ParseException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
