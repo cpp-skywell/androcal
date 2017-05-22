@@ -28,6 +28,10 @@
 
         <activity android:name=".AddCalendarEventActivity"
             android:windowSoftInputMode="adjustNothing" />
+
+        <provider
+            android:authorities="cpp_skywell.androcal.provider"
+            android:name=".ContentProvider.SQLite.LocalCalendarProvider" />
     </application>
 
 </manifest>

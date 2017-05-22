@@ -9,9 +9,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
-import com.google.api.services.calendar.Calendar;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,15 +17,18 @@ import java.util.List;
 import cpp_skywell.androcal.ContentProvider.EventsDO;
 import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
 import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
+import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAOFactory;
 
 /**
  * Created by zhangliang on 5/8/17.
+ * @deprecated use GoogleSyncAdapter
  */
 
 public class GoogleSyncService extends JobService {
     public static final int  JOB_ID = 8001;
 
     private UpdateAsyncTask syncTask = new UpdateAsyncTask();
+    private EventsDAO mEventsDAO = null;
 
     public static boolean register(Context context) {
         ComponentName serviceName = new ComponentName(context, GoogleSyncService.class);
@@ -52,6 +52,12 @@ public class GoogleSyncService extends JobService {
     public boolean onStartJob(JobParameters params) {
         syncTask.execute(params);
         return true;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mEventsDAO = EventsDAOFactory.create(this.getApplicationContext());
     }
 
     @Override
@@ -95,10 +101,9 @@ public class GoogleSyncService extends JobService {
 
         private void syncLocal() throws IOException {
             GEventsDAO gdao = GEventsDAO.getInstance();
-            EventsDAO ldao = EventsDAO.getInstance();
 
             // Get all dirties
-            List<EventsDO> dirties = ldao.getByDirty(true);
+            List<EventsDO> dirties = mEventsDAO.getByDirty(true);
 
             // Group dirty events
             List<EventsDO> newEvents = new ArrayList<EventsDO>();
@@ -129,7 +134,7 @@ public class GoogleSyncService extends JobService {
             it = localDeleteEvents.iterator();
             while(it.hasNext()) {
                 EventsDO event = it.next();
-                ldao.deleteById(event.getId());
+                mEventsDAO.deleteById(event.getId());
                 Log.d("syncLocal.ldel", event.toString());
             }
 
@@ -138,7 +143,7 @@ public class GoogleSyncService extends JobService {
             while(itReturn.hasNext()) {
                 EventsDO newEvent = itReturn.next();
                 newEvent.setDirty(false);
-                ldao.updateById(newEvent);
+                mEventsDAO.updateById(newEvent);
                 Log.d("syncLocal.new", newEvent.toString());
             }
 
@@ -147,7 +152,7 @@ public class GoogleSyncService extends JobService {
             while(itReturn.hasNext()) {
                 EventsDO newEvent = itReturn.next();
                 newEvent.setDirty(false);
-                ldao.updateById(newEvent);
+                mEventsDAO.updateById(newEvent);
                 Log.d("syncLocal.update", newEvent.toString());
             }
 
@@ -161,7 +166,6 @@ public class GoogleSyncService extends JobService {
 
         private void syncRemote() throws IOException {
             GEventsDAO gdao = GEventsDAO.getInstance();
-            EventsDAO ldao = EventsDAO.getInstance();
 
             try {
                 // Get updated events from Google
@@ -173,16 +177,16 @@ public class GoogleSyncService extends JobService {
                     EventsDO event = it.next();
                     Log.d("syncRemote.new", event.toString());
                     if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Events deleted on Google
-                        ldao.deleteByRefId(event.getSource(), event.getRefId());
+                        mEventsDAO.deleteByRefId(event.getSource(), event.getRefId());
                     } else { // Events modified/added on Google
-                        if (ldao.updateByRefId(event) == 0) {
-                            ldao.add(event);
+                        if (mEventsDAO.updateByRefId(event) == 0) {
+                            mEventsDAO.add(event);
                         }
                     }
                 }
 
                 // Check sync result
-                eventList = ldao.getByDateRange(null, null);
+                eventList = mEventsDAO.getByDateRange(null, null);
                 it = eventList.iterator();
                 while(it.hasNext()) {
                     Log.d("syncRemote.all", it.next().toString());

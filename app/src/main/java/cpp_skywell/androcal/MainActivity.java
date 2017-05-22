@@ -23,9 +23,10 @@ import java.util.Arrays;
 import java.util.Date;
 
 import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
-import cpp_skywell.androcal.ContentProvider.SQLite.DBOpenHelper;
 import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
 import cpp_skywell.androcal.ContentProvider.EventsDO;
+import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAOFactory;
+import cpp_skywell.androcal.ContentProvider.SQLite.LocalCalendarProvider;
 import cpp_skywell.androcal.Service.GoogleSyncService;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
@@ -38,16 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = { CalendarScopes.CALENDAR_READONLY, CalendarScopes.CALENDAR };
 
-    private DBOpenHelper mDbHelper = null;
     GoogleAccountCredential mCredential;
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // Close database
-        this.mDbHelper.close();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +47,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Init database and DAO
-        this.mDbHelper = new DBOpenHelper(this.getApplicationContext());
-        EventsDAO.getInstance().init(this.mDbHelper);
+//        EventsDAO.getInstance().init(this.getApplicationContext());
 
         // Initialize credentials and service object.
         mCredential = GoogleAccountCredential.usingOAuth2(
@@ -146,19 +137,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickModify(View view) {
-        EventsDAO ldao = EventsDAO.getInstance();
+        EventsDAO ldao = EventsDAOFactory.create(this.getApplicationContext());
 
         // Add event
-//        Date now = new Date();
-//        EventsDO event = new EventsDO();
-//        event.setName("test batch sync 1");
-//        event.setStart(now);
-//        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
-//        event.setRefId("");
-//        event.setSource(EventsDO.Source.NONE);
-//        event.setStatus(EventsDO.STATUS_NORMAL);
-//        event.setDirty(true);
-//        ldao.add(event);
+        Date now = new Date();
+        EventsDO event = new EventsDO();
+        event.setName("test batch sync 1");
+        event.setStart(now);
+        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
+        event.setRefId("");
+        event.setSource(EventsDO.Source.NONE);
+        event.setStatus(EventsDO.STATUS_NORMAL);
+        event.setDirty(true);
+        ldao.add(event);
 //
 //        now = new Date(now.getTime() + 3600 * 1000);
 //        event = new EventsDO();
@@ -175,10 +166,10 @@ public class MainActivity extends AppCompatActivity {
 //        ldao.cancel(3);
 
         // Update event
-        EventsDO event = ldao.get(3);
-        event.setEnd( new Date(event.getEnd().getTime() + 86400*1000) );
-        event.setDirty(true);
-        ldao.updateById(event);
+//        EventsDO event = ldao.get(3);
+//        event.setEnd( new Date(event.getEnd().getTime() + 86400*1000) );
+//        event.setDirty(true);
+//        ldao.updateById(event);
     }
 
     public void onClickSync(View view) {
@@ -191,9 +182,10 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("Clear Database and SyncToken?");
         builder.setPositiveButton("Clear", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
+                EventsDAO eventsDAO = EventsDAOFactory.create(getApplicationContext());
                 GEventsDAO.getInstance().clearDataStore();
-                EventsDAO.getInstance().dropTable();
-                EventsDAO.getInstance().createTable();
+                eventsDAO.dropTable();
+                eventsDAO.createTable();
                 Log.d("Alert", "settings cleared");
             }
         });
