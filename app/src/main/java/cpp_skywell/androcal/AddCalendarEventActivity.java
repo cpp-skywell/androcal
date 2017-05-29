@@ -1,10 +1,17 @@
 package cpp_skywell.androcal;
 
+import android.app.Activity;
+import android.content.Context;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -26,6 +33,7 @@ public class AddCalendarEventActivity extends AppCompatActivity {
 
     public void onStart(){
         super.onStart();
+        final EditText eventNameEdit = (EditText)findViewById(R.id.txtEventName);
         final EditText startDate = (EditText)findViewById(R.id.txtDateStart);
         final EditText endDate = (EditText)findViewById(R.id.txtDateEnd);
         final EditText startTime = (EditText)findViewById(R.id.txtTimeStart);
@@ -37,6 +45,7 @@ public class AddCalendarEventActivity extends AppCompatActivity {
                 DateDialog dialog = new DateDialog();
                 dialog.setDate(startDate);
                 android.app.FragmentTransaction ft = getFragmentManager().beginTransaction();
+                eventNameEdit.clearFocus();
                 dialog.show(ft, "DatePicker");
             }
         });
@@ -46,6 +55,7 @@ public class AddCalendarEventActivity extends AppCompatActivity {
                 DateDialog dialog = new DateDialog();
                 dialog.setDate(endDate);
                 android.app.FragmentTransaction ft = getFragmentManager().beginTransaction();
+                eventNameEdit.clearFocus();
                 dialog.show(ft, "DatePicker");
             }
         });
@@ -55,6 +65,7 @@ public class AddCalendarEventActivity extends AppCompatActivity {
                 TimeDialog dialog = new TimeDialog();
                 dialog.setEventTime(startTime);
                 android.app.FragmentTransaction ft = getFragmentManager().beginTransaction();
+                eventNameEdit.clearFocus();
                 dialog.show(ft, "TimePicker");
             }
         });
@@ -64,7 +75,16 @@ public class AddCalendarEventActivity extends AppCompatActivity {
                 TimeDialog dialog = new TimeDialog();
                 dialog.setEventTime(endTime);
                 android.app.FragmentTransaction ft = getFragmentManager().beginTransaction();
+                eventNameEdit.clearFocus();
                 dialog.show(ft, "TimePicker");
+            }
+        });
+        eventNameEdit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus){
+                    hideKeyboard(v);
+                }
             }
         });
     }
@@ -94,12 +114,29 @@ public class AddCalendarEventActivity extends AppCompatActivity {
             event.setStatus(EventsDO.STATUS_NORMAL);
             event.setDirty(true);
 
-//            GEventsDAO gEventsDAO = GEventsDAO.getInstance();
-//            gEventsDAO.add(event);
             EventsDAO eventsDAO = EventsDAOFactory.create(this.getApplicationContext());
-            eventsDAO.add(event);
+            long rowId = eventsDAO.add(event);
+
+            showMessage(rowId, view);
         } catch (ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    private void showMessage(long rowId, View view){
+        String msg = "";
+        if(rowId > 0) {
+            msg = "You have successfully added event!";
+        }
+        else{
+            msg = "Something went wrong, please try again.";
+        }
+        Snackbar messageSnackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
+        messageSnackbar.show();
+    }
+
+    public void hideKeyboard(View view) {
+        InputMethodManager inputMethodManager =(InputMethodManager)getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }
