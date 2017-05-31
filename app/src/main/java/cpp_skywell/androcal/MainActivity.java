@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
 
@@ -46,11 +47,25 @@ public class MainActivity extends BaseActivity {
             settingsBundle.putBoolean(
                     ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
             ContentResolver.requestSync(account, LocalCalendarProvider.AUTHORITY, settingsBundle);
+            showMessage(account, view);
         }
+    }
+
+    private void showMessage(Account account, View view){
+        String msg = "";
+        if(account != null) {
+            msg = "You have successfully synced your calendar!";
+        }
+        else{
+            msg = "Something went wrong, please try again.";
+        }
+        Snackbar messageSnackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
+        messageSnackbar.show();
     }
 
     public void onClickClearDB(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final View clearView = view;
         builder.setTitle("Alert")
                 .setMessage("Clear Database and SyncToken?");
         builder.setPositiveButton("Clear", new DialogInterface.OnClickListener() {
@@ -59,6 +74,8 @@ public class MainActivity extends BaseActivity {
                 GEventsDAO.getInstance().clearDataStore();
                 eventsDAO.dropTable();
                 eventsDAO.createTable();
+                Snackbar messageSnackbar = Snackbar.make(clearView, "Database successfully cleared!", Snackbar.LENGTH_SHORT);
+                messageSnackbar.show();
                 Log.d("Alert", "settings cleared");
             }
         });
