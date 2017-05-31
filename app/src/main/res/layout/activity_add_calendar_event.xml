@@ -42,7 +42,7 @@
 
         <EditText
             android:id="@+id/txtTimeStart"
-            android:layout_width="wrap_content"
+            android:layout_width="137dp"
             android:layout_height="wrap_content"
             android:focusable="false"
             android:hint="Start Time"
@@ -52,7 +52,7 @@
 
         <EditText
             android:id="@+id/txtTimeEnd"
-            android:layout_width="wrap_content"
+            android:layout_width="138dp"
             android:layout_height="wrap_content"
             android:focusable="false"
             android:hint="End Time"
