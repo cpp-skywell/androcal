@@ -14,7 +14,7 @@
 
         <Button
             android:id="@+id/button"
-            android:layout_width="wrap_content"
+            android:layout_width="107dp"
             android:layout_height="wrap_content"
             android:onClick="onClickModify"
             android:text="Modify"
@@ -28,7 +28,7 @@
 
         <Button
             android:id="@+id/button2"
-            android:layout_width="wrap_content"
+            android:layout_width="108dp"
             android:layout_height="wrap_content"
             android:onClick="onClickSync"
             android:text="Sync"
@@ -42,7 +42,7 @@
 
         <Button
             android:id="@+id/button3"
-            android:layout_width="wrap_content"
+            android:layout_width="113dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
@@ -50,14 +50,14 @@
             android:onClick="onClickClearDB"
             android:text="Clear"
             android:layout_column="0"
-            android:layout_row="2"
+            android:layout_row="4"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/button"
             android:layout_marginStart="16dp" />
 
         <Button
             android:id="@+id/button4"
-            android:layout_width="wrap_content"
+            android:layout_width="112dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
@@ -67,17 +67,6 @@
             android:onClick="onClickAddEvent" />
 
         <Button
-            android:id="@+id/signOutButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:text="Sign Out"
-            android:layout_column="0"
-            android:layout_row="4"
-            android:onClick="onClickSignOut" />
-
-        <Button
             android:id="@+id/button5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -85,7 +74,7 @@
             android:layout_marginTop="16dp"
             android:text="List Events"
             android:layout_column="0"
-            android:layout_row="5"
+            android:layout_row="2"
             android:onClick="onClickListEvents" />
 
     </GridLayout>
