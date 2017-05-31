@@ -1,14 +1,12 @@
 package cpp_skywell.androcal;
 
-import android.app.Activity;
 import android.app.ListActivity;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.CalendarContract;
-import android.provider.ContactsContract;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,14 +16,13 @@ import android.widget.SimpleCursorAdapter;
 
 import cpp_skywell.androcal.ContentProvider.SQLite.LocalCalendarProvider;
 
-public class ListViewLoader extends ListActivity
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ListViewLoader extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     // This is the Adapter being used to display the list's data
     SimpleCursorAdapter mAdapter;
 
     // These are the Contacts rows that we will retrieve
-    static final String[] PROJECTION = new String[] {
+    static final String[] PROJECTION = new String[]{
             LocalCalendarProvider.Events._ID,
             LocalCalendarProvider.Events.COLUMN_NAME_NAME,
             LocalCalendarProvider.Events.COLUMN_NAME_START,
@@ -84,8 +81,12 @@ public class ListViewLoader extends ListActivity
         mAdapter.swapCursor(null);
     }
 
+    public static final String EVENT_ID = "cpp_skywell.androcal.EVENT_ID";
+
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        // Do something when a list item is clicked
+        Intent intent = new Intent(this, EventActivity.class);
+        intent.putExtra(EVENT_ID, id);
+        startActivity(intent);
     }
 }

@@ -63,7 +63,11 @@
             android:name=".ContentProvider.SQLite.LocalCalendarProvider"
             android:authorities="cpp_skywell.androcal.provider" />
 
-        <activity android:name=".ListViewLoader"></activity>
+        <activity android:name=".ListViewLoader" />
+        <activity
+            android:name=".EventActivity"
+            android:label="@string/title_activity_event"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

@@ -52,7 +52,7 @@ public class EventsDAO {
                 LocalCalendarProvider.Events._ID,
                 LocalCalendarProvider.Events.COLUMN_NAME_NAME,
                 LocalCalendarProvider.Events.COLUMN_NAME_START,
-                LocalCalendarProvider.Events.COLUMN_NAME_START,
+                LocalCalendarProvider.Events.COLUMN_NAME_START,// why is there a repeat here?
                 LocalCalendarProvider.Events.COLUMN_NAME_END,
                 LocalCalendarProvider.Events.COLUMN_NAME_STATUS,
                 LocalCalendarProvider.Events.COLUMN_NAME_SOURCE,
@@ -176,7 +176,7 @@ public class EventsDAO {
                 LocalCalendarProvider.Events._ID,
                 LocalCalendarProvider.Events.COLUMN_NAME_NAME,
                 LocalCalendarProvider.Events.COLUMN_NAME_START,
-                LocalCalendarProvider.Events.COLUMN_NAME_START,
+                LocalCalendarProvider.Events.COLUMN_NAME_START,//repeat?
                 LocalCalendarProvider.Events.COLUMN_NAME_END,
                 LocalCalendarProvider.Events.COLUMN_NAME_STATUS,
                 LocalCalendarProvider.Events.COLUMN_NAME_SOURCE,
@@ -214,7 +214,7 @@ public class EventsDAO {
                 LocalCalendarProvider.Events._ID,
                 LocalCalendarProvider.Events.COLUMN_NAME_NAME,
                 LocalCalendarProvider.Events.COLUMN_NAME_START,
-                LocalCalendarProvider.Events.COLUMN_NAME_START,
+                LocalCalendarProvider.Events.COLUMN_NAME_START,// repeat?
                 LocalCalendarProvider.Events.COLUMN_NAME_END,
                 LocalCalendarProvider.Events.COLUMN_NAME_STATUS,
                 LocalCalendarProvider.Events.COLUMN_NAME_SOURCE,
