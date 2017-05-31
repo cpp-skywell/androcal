@@ -60,7 +60,7 @@ public class GEventsDAO {
         mDataStore = dataStore;
     }
 
-    private void EventsDAO() {
+    private GEventsDAO() {
     }
 
     public static GEventsDAO getInstance() {
