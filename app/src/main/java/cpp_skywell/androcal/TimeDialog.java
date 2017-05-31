@@ -12,7 +12,8 @@ import java.util.Calendar;
 public class TimeDialog extends DialogFragment {
     EditText eventTime;
 
-    public TimeDialog(){}
+    public TimeDialog() {
+    }
 
     public void setEventTime(EditText eventTime) {
         this.eventTime = eventTime;

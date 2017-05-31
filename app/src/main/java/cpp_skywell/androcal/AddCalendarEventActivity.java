@@ -31,13 +31,13 @@ public class AddCalendarEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_calendar_event);
     }
 
-    public void onStart(){
+    public void onStart() {
         super.onStart();
-        final EditText eventNameEdit = (EditText)findViewById(R.id.txtEventName);
-        final EditText startDate = (EditText)findViewById(R.id.txtDateStart);
-        final EditText endDate = (EditText)findViewById(R.id.txtDateEnd);
-        final EditText startTime = (EditText)findViewById(R.id.txtTimeStart);
-        final EditText endTime = (EditText)findViewById(R.id.txtTimeEnd);
+        final EditText eventNameEdit = (EditText) findViewById(R.id.txtEventName);
+        final EditText startDate = (EditText) findViewById(R.id.txtDateStart);
+        final EditText endDate = (EditText) findViewById(R.id.txtDateEnd);
+        final EditText startTime = (EditText) findViewById(R.id.txtTimeStart);
+        final EditText endTime = (EditText) findViewById(R.id.txtTimeEnd);
 
         startDate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,19 +82,19 @@ public class AddCalendarEventActivity extends AppCompatActivity {
         eventNameEdit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus){
+                if (!hasFocus) {
                     hideKeyboard(v);
                 }
             }
         });
     }
 
-    public void onClickAddEventToCalendar(View view){
-        final EditText eventNameEdit = (EditText)findViewById(R.id.txtEventName);
-        final EditText evenStartDateEdit = (EditText)findViewById(R.id.txtDateStart);
-        final EditText evenStartTimeEdit = (EditText)findViewById(R.id.txtTimeStart);
-        final EditText evenEndDateEdit = (EditText)findViewById(R.id.txtDateEnd);
-        final EditText evenEndTimeEdit = (EditText)findViewById(R.id.txtTimeEnd);
+    public void onClickAddEventToCalendar(View view) {
+        final EditText eventNameEdit = (EditText) findViewById(R.id.txtEventName);
+        final EditText evenStartDateEdit = (EditText) findViewById(R.id.txtDateStart);
+        final EditText evenStartTimeEdit = (EditText) findViewById(R.id.txtTimeStart);
+        final EditText evenEndDateEdit = (EditText) findViewById(R.id.txtDateEnd);
+        final EditText evenEndTimeEdit = (EditText) findViewById(R.id.txtTimeEnd);
 
         String eventName = eventNameEdit.getText().toString();
         String evenStart = evenStartDateEdit.getText().toString() + " " + evenStartTimeEdit.getText().toString();
@@ -123,12 +123,11 @@ public class AddCalendarEventActivity extends AppCompatActivity {
         }
     }
 
-    private void showMessage(long rowId, View view){
+    private void showMessage(long rowId, View view) {
         String msg = "";
-        if(rowId > 0) {
+        if (rowId > 0) {
             msg = "You have successfully added event!";
-        }
-        else{
+        } else {
             msg = "Something went wrong, please try again.";
         }
         Snackbar messageSnackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
@@ -136,7 +135,7 @@ public class AddCalendarEventActivity extends AppCompatActivity {
     }
 
     public void hideKeyboard(View view) {
-        InputMethodManager inputMethodManager =(InputMethodManager)getSystemService(Activity.INPUT_METHOD_SERVICE);
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }

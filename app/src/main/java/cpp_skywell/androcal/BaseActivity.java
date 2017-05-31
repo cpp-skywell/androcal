@@ -37,7 +37,7 @@ public class BaseActivity extends AppCompatActivity {
     protected static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
     protected static final String PREF_ACCOUNT_NAME = "accountName";
-    protected static final String[] SCOPES = { CalendarScopes.CALENDAR_READONLY, CalendarScopes.CALENDAR };
+    protected static final String[] SCOPES = {CalendarScopes.CALENDAR_READONLY, CalendarScopes.CALENDAR};
 
     GoogleAccountCredential mCredential;
 
@@ -86,6 +86,7 @@ public class BaseActivity extends AppCompatActivity {
 
     /**
      * Callback for startActivityForResult
+     *
      * @param requestCode
      * @param resultCode
      * @param data
@@ -93,7 +94,7 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch(requestCode) {
+        switch (requestCode) {
             case REQUEST_ACCOUNT_PICKER:
                 if (resultCode == RESULT_OK && data != null &&
                         data.getExtras() != null) {
@@ -168,7 +169,7 @@ public class BaseActivity extends AppCompatActivity {
             // Trigger Google authentication
             try {
                 GEventsDAO.getInstance().checkAuth();
-            } catch(UserRecoverableAuthIOException e) {
+            } catch (UserRecoverableAuthIOException e) {
                 startActivityForResult(
                         e.getIntent(),
                         REQUEST_AUTHORIZATION);

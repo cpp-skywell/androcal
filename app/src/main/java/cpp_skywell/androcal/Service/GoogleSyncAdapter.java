@@ -54,7 +54,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
         List<EventsDO> deleteEvents = new ArrayList<EventsDO>();
         List<EventsDO> localDeleteEvents = new ArrayList<EventsDO>();
         Iterator<EventsDO> it = dirties.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             EventsDO event = it.next();
             if (event.getSource() == EventsDO.Source.NONE) { // Not exist on Google
                 if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Deteleted locally
@@ -75,7 +75,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Delete ones not exist on Google
         it = localDeleteEvents.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             EventsDO event = it.next();
             mEventsDAO.deleteById(event.getId());
             Log.d("syncUpload.ldel", event.toString());
@@ -83,7 +83,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Batch sync new ones
         itReturn = gdao.addBatch(newEvents).iterator();
-        while(itReturn.hasNext()) {
+        while (itReturn.hasNext()) {
             EventsDO newEvent = itReturn.next();
             newEvent.setDirty(false);
             mEventsDAO.updateById(newEvent);
@@ -92,7 +92,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Batch sync updated ones
         itReturn = gdao.updateBatch(updateEvents).iterator();
-        while(itReturn.hasNext()) {
+        while (itReturn.hasNext()) {
             EventsDO newEvent = itReturn.next();
             newEvent.setDirty(false);
             mEventsDAO.updateById(newEvent);
@@ -102,7 +102,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
         // Batch sync deleted ones
         gdao.deleteBatch(deleteEvents);
         it = deleteEvents.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Log.d("syncUpload.del", it.next().toString());
         }
     }
@@ -116,7 +116,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
             Iterator<EventsDO> it = eventList.iterator();
 
             // Update local database
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 EventsDO event = it.next();
                 Log.d("syncDownload.new", event.toString());
                 if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Events deleted on Google
@@ -131,7 +131,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
             // Check sync result
             eventList = mEventsDAO.getByDateRange(null, null);
             it = eventList.iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 Log.d("syncDownload.all", it.next().toString());
             }
         } catch (GEventsDAO.InvalidSyncTokenException e) {

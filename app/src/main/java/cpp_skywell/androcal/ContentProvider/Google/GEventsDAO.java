@@ -60,7 +60,8 @@ public class GEventsDAO {
         mDataStore = dataStore;
     }
 
-    private void EventsDAO() {}
+    private void EventsDAO() {
+    }
 
     public static GEventsDAO getInstance() {
         return Loader.INSTANCE;
@@ -126,7 +127,7 @@ public class GEventsDAO {
         BatchRequest batch = this.mService.batch();
 
         Iterator<EventsDO> itRequest = eventList.iterator();
-        while(itRequest.hasNext()) {
+        while (itRequest.hasNext()) {
             EventsDO event = itRequest.next();
 
             Event gevent = new Event();
@@ -146,7 +147,7 @@ public class GEventsDAO {
         // The data on Google is exactly the same as local
         // So just set dirty => false
         itRequest = eventList.iterator();
-        while(itRequest.hasNext()) {
+        while (itRequest.hasNext()) {
             EventsDO event = itRequest.next();
             event.setDirty(false);
             events.add(event);
@@ -166,7 +167,7 @@ public class GEventsDAO {
 
         Map<Integer, EventsDO> requestMap = new HashMap<Integer, EventsDO>();
         Iterator<EventsDO> itRequest = eventList.iterator();
-        while(itRequest.hasNext()) {
+        while (itRequest.hasNext()) {
             EventsDO event = itRequest.next();
             requestMap.put(event.localHash(), event);
 //            Log.d("RequestHash", String.valueOf(event.localHash()) + " : " + event.toString());
@@ -187,7 +188,7 @@ public class GEventsDAO {
 
         // No refId in local data, so we need to copy it from Google response
         Iterator<Event> itReturn = callback.result.iterator();
-        while(itReturn.hasNext()) {
+        while (itReturn.hasNext()) {
             EventsDO eventNew = this.mapValues(itReturn.next());
             EventsDO eventRequest = requestMap.get(eventNew.localHash());
             if (eventRequest == null) {
@@ -230,7 +231,7 @@ public class GEventsDAO {
         do {
             try {
                 events = request.execute();
-            } catch(GoogleJsonResponseException e) {
+            } catch (GoogleJsonResponseException e) {
                 if (e.getStatusCode() == 410) { // sync token invalid
                     this.removeDataStore(SYNC_TOKEN_KEY);
                     throw new InvalidSyncTokenException();
@@ -240,12 +241,12 @@ public class GEventsDAO {
             }
 
             Iterator<Event> it = events.getItems().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 Event item = it.next();
 //                Log.d("GEventsDAO", item.toString());
                 eventList.add(this.mapValues(item));
             }
-        } while(pageToken != null);
+        } while (pageToken != null);
 
         // Save the latest sync token
         this.saveDataStore(SYNC_TOKEN_KEY, events.getNextSyncToken());
@@ -283,7 +284,7 @@ public class GEventsDAO {
                 .execute();
 
         Iterator<Event> it = events.getItems().iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Event item = it.next();
             eventList.add(this.mapValues(item));
         }
@@ -311,7 +312,7 @@ public class GEventsDAO {
                 event.setEnd(new Date(eDateTime.getDateTime().getValue()));
             } else { // All day event, add 1day-0.001s
                 int tzShift = TimeZone.getDefault().getOffset(eDateTime.getDate().getValue());
-                event.setEnd(new Date( eDateTime.getDate().getValue() - tzShift ));
+                event.setEnd(new Date(eDateTime.getDate().getValue() - tzShift));
             }
             event.setStatus(EventsDO.STATUS_NORMAL);
         } else {
@@ -321,11 +322,11 @@ public class GEventsDAO {
         return event;
     }
 
-    public Calendar getCalendarInstance(){
+    public Calendar getCalendarInstance() {
         return mService;
     }
 
-    public Events getEventsList (){
+    public Events getEventsList() {
         Events events = null;
         try {
             events = this.mService.events().list(CALENDAR_ID).execute();
@@ -335,7 +336,8 @@ public class GEventsDAO {
         return events;
     }
 
-    public static class InvalidSyncTokenException extends IOException { }
+    public static class InvalidSyncTokenException extends IOException {
+    }
 
     static class Fields {
         static final String FIELD_NAME_START_TIME = "startTime";
@@ -350,7 +352,7 @@ public class GEventsDAO {
         }
 
         public static Status fromString(String value) {
-            for (Status s: Status.values()) {
+            for (Status s : Status.values()) {
                 if (s.value.equals(value)) {
                     return s;
                 }

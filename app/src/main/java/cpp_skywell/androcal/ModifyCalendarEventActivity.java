@@ -51,9 +51,9 @@ public class ModifyCalendarEventActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Boolean result) {
             ArrayList<String> eventNames = new ArrayList<>();
-            if(events != null && !events.isEmpty()){
+            if (events != null && !events.isEmpty()) {
                 List<Event> eventsList = events.getItems();
-                for (Event event : eventsList){
+                for (Event event : eventsList) {
                     eventNames.add(event.getSummary());
                 }
                 ArrayAdapter eventAdapter = new ArrayAdapter(getApplicationContext(), R.layout.activity_listview, eventNames);

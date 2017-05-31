@@ -21,11 +21,12 @@ import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAOFactory;
 
 /**
  * Created by zhangliang on 5/8/17.
+ *
  * @deprecated use GoogleSyncAdapter
  */
 
 public class GoogleSyncService extends JobService {
-    public static final int  JOB_ID = 8001;
+    public static final int JOB_ID = 8001;
 
     private UpdateAsyncTask syncTask = new UpdateAsyncTask();
     private EventsDAO mEventsDAO = null;
@@ -36,7 +37,7 @@ public class GoogleSyncService extends JobService {
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                 .setRequiresDeviceIdle(false)
                 .setRequiresCharging(false)
-                .setPeriodic(15*60*1000)
+                .setPeriodic(15 * 60 * 1000)
                 .build();
         JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         int result = scheduler.schedule(jobInfo);
@@ -48,6 +49,7 @@ public class GoogleSyncService extends JobService {
         }
 
     }
+
     @Override
     public boolean onStartJob(JobParameters params) {
         syncTask.execute(params);
@@ -94,7 +96,7 @@ public class GoogleSyncService extends JobService {
 
         @Override
         protected void onPostExecute(JobParameters[] result) {
-            for (JobParameters params: result) {
+            for (JobParameters params : result) {
                 jobFinished(params, false);
             }
         }
@@ -111,7 +113,7 @@ public class GoogleSyncService extends JobService {
             List<EventsDO> deleteEvents = new ArrayList<EventsDO>();
             List<EventsDO> localDeleteEvents = new ArrayList<EventsDO>();
             Iterator<EventsDO> it = dirties.iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 EventsDO event = it.next();
                 if (event.getSource() == EventsDO.Source.NONE) { // Not exist on Google
                     if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Deteleted locally
@@ -132,7 +134,7 @@ public class GoogleSyncService extends JobService {
 
             // Delete ones not exist on Google
             it = localDeleteEvents.iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 EventsDO event = it.next();
                 mEventsDAO.deleteById(event.getId());
                 Log.d("syncLocal.ldel", event.toString());
@@ -140,7 +142,7 @@ public class GoogleSyncService extends JobService {
 
             // Batch sync new ones
             itReturn = gdao.addBatch(newEvents).iterator();
-            while(itReturn.hasNext()) {
+            while (itReturn.hasNext()) {
                 EventsDO newEvent = itReturn.next();
                 newEvent.setDirty(false);
                 mEventsDAO.updateById(newEvent);
@@ -149,7 +151,7 @@ public class GoogleSyncService extends JobService {
 
             // Batch sync updated ones
             itReturn = gdao.updateBatch(updateEvents).iterator();
-            while(itReturn.hasNext()) {
+            while (itReturn.hasNext()) {
                 EventsDO newEvent = itReturn.next();
                 newEvent.setDirty(false);
                 mEventsDAO.updateById(newEvent);
@@ -159,7 +161,7 @@ public class GoogleSyncService extends JobService {
             // Batch sync deleted ones
             gdao.deleteBatch(deleteEvents);
             it = deleteEvents.iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 Log.d("syncLocal.del", it.next().toString());
             }
         }
@@ -173,7 +175,7 @@ public class GoogleSyncService extends JobService {
                 Iterator<EventsDO> it = eventList.iterator();
 
                 // Update local database
-                while(it.hasNext()) {
+                while (it.hasNext()) {
                     EventsDO event = it.next();
                     Log.d("syncRemote.new", event.toString());
                     if (event.getStatus() == EventsDO.STATUS_CANCEL) { // Events deleted on Google
@@ -188,7 +190,7 @@ public class GoogleSyncService extends JobService {
                 // Check sync result
                 eventList = mEventsDAO.getByDateRange(null, null);
                 it = eventList.iterator();
-                while(it.hasNext()) {
+                while (it.hasNext()) {
                     Log.d("syncRemote.all", it.next().toString());
                 }
             } catch (GEventsDAO.InvalidSyncTokenException e) {

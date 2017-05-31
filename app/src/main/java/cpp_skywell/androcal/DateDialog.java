@@ -13,13 +13,14 @@ import java.util.Calendar;
 public class DateDialog extends DialogFragment implements DatePickerDialog.OnDateSetListener {
     EditText eventDate;
 
-    public DateDialog(){}
+    public DateDialog() {
+    }
 
     public void setDate(EditText eventDate) {
         this.eventDate = eventDate;
     }
 
-    public Dialog onCreateDialog(Bundle savedInstanceState){
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
@@ -27,8 +28,8 @@ public class DateDialog extends DialogFragment implements DatePickerDialog.OnDat
         return new DatePickerDialog(getActivity(), this, year, month, day);
     }
 
-    public void onDateSet(DatePicker view, int year, int month, int day){
-        String date = month+1 + "/" + day + "/" + year;
+    public void onDateSet(DatePicker view, int year, int month, int day) {
+        String date = month + 1 + "/" + day + "/" + year;
         eventDate.setText(date);
     }
 }

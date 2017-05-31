@@ -11,9 +11,12 @@ public class EventsDO {
     public static final int STATUS_UNKNOWN = 0;
     public static final int STATUS_NORMAL = 1;
     public static final int STATUS_CANCEL = 2;
+
     public static enum Source {
         NONE, GOOGLE, OTHER;
-    };
+    }
+
+    ;
 
 
     protected long id;
@@ -46,7 +49,7 @@ public class EventsDO {
     }
 
     public void setStart(Date start) {
-        this.start = new Date(start.getTime()/1000*1000);
+        this.start = new Date(start.getTime() / 1000 * 1000);
     }
 
     public Date getEnd() {
@@ -54,7 +57,7 @@ public class EventsDO {
     }
 
     public void setEnd(Date end) {
-        this.end = new Date(end.getTime()/1000*1000);
+        this.end = new Date(end.getTime() / 1000 * 1000);
     }
 
     public int getStatus() {
@@ -99,12 +102,12 @@ public class EventsDO {
 
     public String toString() {
         return "id=" + this.id + "; " +
-                "name=" + (this.name == null? "null": this.name) + "; " +
-                "start=" + (this.start == null? "null": this.start.toString()) + "; " +
-                "end=" + (this.end == null? "null": this.end.toString()) + "; " +
-                "refId=" + (this.refId == null? "null": this.refId) + "; " +
-                "source=" + (this.source == null? "null": this.source) + "; " +
-                "dirty=" + (this.dirty? "1": "0") + "; " +
+                "name=" + (this.name == null ? "null" : this.name) + "; " +
+                "start=" + (this.start == null ? "null" : this.start.toString()) + "; " +
+                "end=" + (this.end == null ? "null" : this.end.toString()) + "; " +
+                "refId=" + (this.refId == null ? "null" : this.refId) + "; " +
+                "source=" + (this.source == null ? "null" : this.source) + "; " +
+                "dirty=" + (this.dirty ? "1" : "0") + "; " +
                 "status=" + this.status;
     }
 }

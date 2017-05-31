@@ -26,6 +26,7 @@ public class LocalCalendarProvider extends ContentProvider {
     public LocalCalendarProvider() {
         super();
     }
+
     protected SQLiteDatabase getReader() {
         return this.mOpenHelper.getReadableDatabase();
     }
