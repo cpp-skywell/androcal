@@ -5,19 +5,10 @@ import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
-
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
-import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.Events;
-
-import java.io.IOException;
-import java.util.List;
 
 import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
 import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
@@ -93,7 +84,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void onClickListEvents(View view) {
-        Intent intent = new Intent(this, ListViewLoader.class);
+        Intent intent = new Intent(this, ListEventsActivity.class);
         startActivity(intent);
     }
 }

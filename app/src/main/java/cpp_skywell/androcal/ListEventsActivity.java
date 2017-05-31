@@ -16,7 +16,7 @@ import android.widget.SimpleCursorAdapter;
 
 import cpp_skywell.androcal.ContentProvider.SQLite.LocalCalendarProvider;
 
-public class ListViewLoader extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ListEventsActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     // This is the Adapter being used to display the list's data
     SimpleCursorAdapter mAdapter;
