@@ -77,6 +77,17 @@
             android:layout_row="4"
             android:onClick="onClickSignOut" />
 
+        <Button
+            android:id="@+id/button5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:text="List Events"
+            android:layout_column="0"
+            android:layout_row="5"
+            android:onClick="onClickListEvents" />
+
     </GridLayout>
 
 </android.support.constraint.ConstraintLayout>

@@ -74,4 +74,9 @@ public class MainActivity extends BaseActivity {
         Intent intent = new Intent(this, AddCalendarEventActivity.class);
         startActivity(intent);
     }
+
+    public void onClickListEvents(View view) {
+        Intent intent = new Intent(this, ListViewLoader.class);
+        startActivity(intent);
+    }
 }
