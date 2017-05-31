@@ -1,6 +1,8 @@
 package cpp_skywell.androcal.ContentProvider;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -27,6 +29,16 @@ public class EventsDO {
     protected Source source;
     protected String refId;
     protected boolean dirty = false;
+    protected Map<String, String> customFields= new HashMap<String, String>();
+
+    public String getCustomValue(String key) {
+        return this.customFields.get(key);
+    }
+
+    public void setCustomValue(String key, String value) {
+        this.customFields.put(key, value);
+    }
+
 
     public long getId() {
         return id;
