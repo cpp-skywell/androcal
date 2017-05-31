@@ -16,6 +16,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 
+import cpp_skywell.androcal.ContentProvider.SQLite.LocalCalendarProvider;
+
 public class ListViewLoader extends ListActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -23,7 +25,11 @@ public class ListViewLoader extends ListActivity
     SimpleCursorAdapter mAdapter;
 
     // These are the Contacts rows that we will retrieve
-    static final String[] PROJECTION = new String[] {CalendarContract.Events._ID, CalendarContract.Events.TITLE, CalendarContract.Events.DTSTART, CalendarContract.Events.DTEND};
+    static final String[] PROJECTION = new String[] {
+            LocalCalendarProvider.Events._ID,
+            LocalCalendarProvider.Events.COLUMN_NAME_NAME,
+            LocalCalendarProvider.Events.COLUMN_NAME_START,
+            LocalCalendarProvider.Events.COLUMN_NAME_END};
 
     // This is the select criteria
     static final String SELECTION = "";
@@ -43,7 +49,7 @@ public class ListViewLoader extends ListActivity
         root.addView(progressBar);
 
         // For the cursor adapter, specify which columns go into which views
-        String[] fromColumns = {CalendarContract.Events.TITLE};//ContactsContract.Data.DISPLAY_NAME
+        String[] fromColumns = {LocalCalendarProvider.Events.COLUMN_NAME_NAME};
         int[] toViews = {android.R.id.text1}; // The TextView in simple_list_item_1
 
         // Create an empty adapter we will use to display the loaded data.
@@ -60,7 +66,7 @@ public class ListViewLoader extends ListActivity
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        return new CursorLoader(this, CalendarContract.Events.CONTENT_URI, PROJECTION, SELECTION, null, null);
+        return new CursorLoader(this, LocalCalendarProvider.Events.CONTENT_URI, PROJECTION, SELECTION, null, null);
     }
 
     // Called when a previously created loader has finished loading
