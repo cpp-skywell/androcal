@@ -51,6 +51,8 @@
 
         <activity android:name=".AddCalendarEventActivity"
             android:windowSoftInputMode="adjustNothing" />
+        <activity android:name=".ModifyCalendarEventActivity"
+            android:windowSoftInputMode="adjustNothing" />
 
         <provider
             android:authorities="cpp_skywell.androcal.provider"

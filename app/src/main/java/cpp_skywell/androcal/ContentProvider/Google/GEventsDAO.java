@@ -321,6 +321,20 @@ public class GEventsDAO {
         return event;
     }
 
+    public Calendar getCalendarInstance(){
+        return mService;
+    }
+
+    public Events getEventsList (){
+        Events events = null;
+        try {
+            events = this.mService.events().list(CALENDAR_ID).execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return events;
+    }
+
     public static class InvalidSyncTokenException extends IOException { }
 
     static class Fields {

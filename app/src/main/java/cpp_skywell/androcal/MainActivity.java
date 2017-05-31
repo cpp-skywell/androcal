@@ -5,13 +5,21 @@ import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import java.util.Date;
+
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.Events;
+
+import java.io.IOException;
+import java.util.List;
+
 import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
 import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
-import cpp_skywell.androcal.ContentProvider.EventsDO;
 import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAOFactory;
 import cpp_skywell.androcal.ContentProvider.SQLite.LocalCalendarProvider;
 
@@ -25,39 +33,8 @@ public class MainActivity extends BaseActivity {
 
 
     public void onClickModify(View view) {
-        EventsDAO ldao = EventsDAOFactory.create(this.getApplicationContext());
-
-        // Add event
-        Date now = new Date();
-        EventsDO event = new EventsDO();
-        event.setName("test batch sync 1");
-        event.setStart(now);
-        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
-        event.setRefId("");
-        event.setSource(EventsDO.Source.NONE);
-        event.setStatus(EventsDO.STATUS_NORMAL);
-        event.setDirty(true);
-        ldao.add(event);
-//
-//        now = new Date(now.getTime() + 3600 * 1000);
-//        event = new EventsDO();
-//        event.setName("test batch sync 2");
-//        event.setStart(now);
-//        event.setEnd(new Date(now.getTime() + 3600*1000)); // 1 hour
-//        event.setRefId("");
-//        event.setSource(EventsDO.Source.NONE);
-//        event.setStatus(EventsDO.STATUS_NORMAL);
-//        event.setDirty(true);
-//        ldao.add(event);
-
-        // Cancel event
-//        ldao.cancel(3);
-
-        // Update event
-//        EventsDO event = ldao.get(3);
-//        event.setEnd( new Date(event.getEnd().getTime() + 86400*1000) );
-//        event.setDirty(true);
-//        ldao.updateById(event);
+        Intent intent = new Intent(this, ModifyCalendarEventActivity.class);
+        startActivity(intent);
     }
 
     public void onClickSync(View view) {
