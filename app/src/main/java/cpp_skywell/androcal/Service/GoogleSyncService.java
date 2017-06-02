@@ -59,7 +59,8 @@ public class GoogleSyncService extends JobService {
     @Override
     public void onCreate() {
         super.onCreate();
-        mEventsDAO = EventsDAOFactory.create(this.getApplicationContext());
+//        mEventsDAO = EventsDAOFactory.create(this.getApplicationContext());
+        mEventsDAO = new EventsDAO(this.getContentResolver());
     }
 
     @Override

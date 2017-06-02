@@ -61,7 +61,8 @@ public class MainActivity extends BaseActivity {
                 .setMessage("Clear Database and SyncToken?");
         builder.setPositiveButton("Clear", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                EventsDAO eventsDAO = EventsDAOFactory.create(getApplicationContext());
+//                EventsDAO eventsDAO = EventsDAOFactory.create(getApplicationContext());
+                EventsDAO eventsDAO = new EventsDAO(getContentResolver());
                 GEventsDAO.getInstance().clearDataStore();
                 eventsDAO.dropTable();
                 eventsDAO.createTable();

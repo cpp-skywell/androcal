@@ -23,7 +23,8 @@ public class EventActivity extends AppCompatActivity {
         Intent intent = getIntent();
         long id = intent.getLongExtra(ListEventsActivity.EVENT_ID, 0);
 
-        EventsDAO dao = EventsDAOFactory.create(this);
+//        EventsDAO dao = EventsDAOFactory.create(this);
+        EventsDAO dao = new EventsDAO(this.getContentResolver());
         EventsDO event = dao.get(id);
 
         ((TextView) findViewById(R.id.textView)).setText(event.getName());

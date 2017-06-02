@@ -4,6 +4,7 @@ import android.content.Context;
 
 /**
  * Created by zhangliang on 5/21/17.
+ * @deprecated 
  */
 
 public class EventsDAOFactory {

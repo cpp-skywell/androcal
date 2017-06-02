@@ -114,7 +114,8 @@ public class AddCalendarEventActivity extends AppCompatActivity {
             event.setStatus(EventsDO.STATUS_NORMAL);
             event.setDirty(true);
 
-            EventsDAO eventsDAO = EventsDAOFactory.create(this.getApplicationContext());
+//            EventsDAO eventsDAO = EventsDAOFactory.create(this.getApplicationContext());
+            EventsDAO eventsDAO = new EventsDAO(this.getContentResolver());
             long rowId = eventsDAO.add(event);
 
             // DEBUG custom fields

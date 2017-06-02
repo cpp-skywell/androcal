@@ -27,7 +27,8 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
 
     public GoogleSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs) {
         super(context, autoInitialize, allowParallelSyncs);
-        mEventsDAO = EventsDAOFactory.create(context);
+//        mEventsDAO = EventsDAOFactory.create(context);
+        mEventsDAO = new EventsDAO(context.getContentResolver());
     }
 
     @Override
