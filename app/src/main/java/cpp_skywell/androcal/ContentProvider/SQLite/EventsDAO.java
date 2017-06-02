@@ -1,18 +1,17 @@
 package cpp_skywell.androcal.ContentProvider.SQLite;
 
-import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import cpp_skywell.androcal.ContentProvider.EventsDO;
 
@@ -46,6 +45,19 @@ public class EventsDAO {
         return ContentUris.parseId(result);
     }
 
+    public void addCustomFields(EventsDO event) {
+        long eventId = event.getId();
+        Iterator<Map.Entry<String, String>> itFields = event.getCustomFields().entrySet().iterator();
+        while (itFields.hasNext()) { // TODO: use bulk insert
+            Map.Entry<String, String> entry = itFields.next();
+            ContentValues values = new ContentValues();
+            values.put(LocalCalendarProvider.CustomFields.COLUMN_NAME_EVENT_ID, eventId);
+            values.put(LocalCalendarProvider.CustomFields.COLUMN_NAME_NAME, entry.getKey());
+            values.put(LocalCalendarProvider.CustomFields.COLUMN_NAME_VALUE, entry.getValue());
+            getResolver().insert(LocalCalendarProvider.CustomFields.CONTENT_URI, values);
+        }
+    }
+
     public EventsDO get(long id) {
         // Columns to return
         String[] columns = {
@@ -76,11 +88,44 @@ public class EventsDAO {
         EventsDO event = null;
         if (cursor.getCount() == 1) {
             cursor.moveToFirst();
-            event = this.mapColumns(cursor);
+            event = this.mapEventsColumns(cursor);
         }
         cursor.close();
 
         return event;
+    }
+
+    public Map<String, String> getCustomFields(long eventId) {
+        // Colums to return
+        String[] columns = {
+                LocalCalendarProvider.CustomFields.COLUMN_NAME_NAME,
+                LocalCalendarProvider.CustomFields.COLUMN_NAME_VALUE
+        };
+        // Filters
+        String selection = LocalCalendarProvider.CustomFields.COLUMN_NAME_EVENT_ID + "=?";
+        String[] selectionArgs = {String.valueOf(eventId)};
+        // Execute SQL
+        Cursor cursor = getResolver().query(
+                LocalCalendarProvider.CustomFields.CONTENT_URI,
+                columns,
+                selection,
+                selectionArgs,
+                null
+        );
+        // Fetch result
+        Map<String, String> customFields = new HashMap<String, String>();
+        while (cursor.moveToNext()) {
+            int index = cursor.getColumnIndex(LocalCalendarProvider.CustomFields.COLUMN_NAME_NAME);
+            String name = cursor.getString(index);
+
+            index = cursor.getColumnIndex(LocalCalendarProvider.CustomFields.COLUMN_NAME_VALUE);
+            String value = cursor.getString(index);
+
+            customFields.put(name, value);
+        }
+        cursor.close();
+
+        return customFields;
     }
 
     public int cancel(long eventId) {
@@ -198,7 +243,7 @@ public class EventsDAO {
         // Fetch result
         List<EventsDO> result = new ArrayList<EventsDO>();
         while (cursor.moveToNext()) {
-            EventsDO event = this.mapColumns(cursor);
+            EventsDO event = this.mapEventsColumns(cursor);
             result.add(event);
         }
         cursor.close();
@@ -244,7 +289,7 @@ public class EventsDAO {
         // Fetch result
         List<EventsDO> result = new ArrayList<EventsDO>();
         while (cursor.moveToNext()) {
-            EventsDO event = this.mapColumns(cursor);
+            EventsDO event = this.mapEventsColumns(cursor);
             result.add(event);
         }
         cursor.close();
@@ -253,14 +298,16 @@ public class EventsDAO {
     }
 
     public void dropTable() {
-        getResolver().call(LocalCalendarProvider.Events.CONTENT_URI, "drop", null, null);
+        getResolver().call(LocalCalendarProvider.Events.CONTENT_URI, LocalCalendarProvider.CALL_DROP_EVENTS, null, null);
+        getResolver().call(LocalCalendarProvider.CustomFields.CONTENT_URI, LocalCalendarProvider.CALL_DROP_CUSTOMFIELDS, null, null);
     }
 
     public void createTable() {
-        getResolver().call(LocalCalendarProvider.Events.CONTENT_URI, "create", null, null);
+        getResolver().call(LocalCalendarProvider.Events.CONTENT_URI, LocalCalendarProvider.CALL_CREATE_EVENTS, null, null);
+        getResolver().call(LocalCalendarProvider.CustomFields.CONTENT_URI, LocalCalendarProvider.CALL_CREATE_CUSTOMFIELDS, null, null);
     }
 
-    private EventsDO mapColumns(Cursor cursor) {
+    private EventsDO mapEventsColumns(Cursor cursor) {
         EventsDO event = new EventsDO();
 
         int index = cursor.getColumnIndex(LocalCalendarProvider.Events._ID);

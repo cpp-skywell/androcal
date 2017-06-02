@@ -117,6 +117,12 @@ public class AddCalendarEventActivity extends AppCompatActivity {
             EventsDAO eventsDAO = EventsDAOFactory.create(this.getApplicationContext());
             long rowId = eventsDAO.add(event);
 
+            // DEBUG custom fields
+            event.setId(rowId);
+            event.setCustomValue("ckey1", "cvalue1");
+            event.setCustomValue("ckey2", "cvalue2");
+            eventsDAO.addCustomFields(event);
+
             showMessage(rowId, view);
         } catch (ParseException e) {
             e.printStackTrace();

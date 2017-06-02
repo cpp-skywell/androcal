@@ -31,6 +31,14 @@ public class EventsDO {
     protected boolean dirty = false;
     protected Map<String, String> customFields= new HashMap<String, String>();
 
+    public Map<String, String> getCustomFields() {
+        return customFields;
+    }
+
+    public void setCustomFields(Map<String, String> customFields) {
+        this.customFields = customFields;
+    }
+
     public String getCustomValue(String key) {
         return this.customFields.get(key);
     }

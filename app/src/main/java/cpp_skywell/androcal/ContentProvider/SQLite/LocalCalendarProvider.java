@@ -14,12 +14,25 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by zhangliang on 5/21/17.
  */
 
 public class LocalCalendarProvider extends ContentProvider {
     public static final String AUTHORITY = "cpp_skywell.androcal.provider";
+    public static final String CALL_DROP_EVENTS = "drop_events";
+    public static final String CALL_CREATE_EVENTS = "create_events";
+    public static final String CALL_DROP_CUSTOMFIELDS = "drop_cust";
+    public static final String CALL_CREATE_CUSTOMFIELDS = "create_cust";
+
+    private static final Map<Uri, String> mTableMap = new HashMap<Uri, String>();
+    static {
+        mTableMap.put(Events.CONTENT_URI, Events.NAME);
+        mTableMap.put(CustomFields.CONTENT_URI, CustomFields.NAME);
+    }
 
     private DBOpenHelper mOpenHelper = null;
 
@@ -46,7 +59,7 @@ public class LocalCalendarProvider extends ContentProvider {
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         SQLiteDatabase db = getReader();
         return db.query(
-                LocalCalendarProvider.Events.NAME, // Table name
+                getTableName(uri), // Table name
                 projection, // columns to return
                 selection, // filters for WHERE clause
                 selectionArgs, // values for selection
@@ -66,21 +79,21 @@ public class LocalCalendarProvider extends ContentProvider {
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         SQLiteDatabase db = this.getWriter();
-        long id = db.insert(LocalCalendarProvider.Events.NAME, null, values);
+        long id = db.insert(getTableName(uri), null, values);
         return ContentUris.withAppendedId(Events.CONTENT_URI, id);
     }
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
         SQLiteDatabase db = this.getWriter();
-        return db.delete(LocalCalendarProvider.Events.NAME, selection, selectionArgs);
+        return db.delete(getTableName(uri), selection, selectionArgs);
     }
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         SQLiteDatabase db = this.getWriter();
         return db.update(
-                LocalCalendarProvider.Events.NAME,
+                getTableName(uri),
                 values,
                 selection,
                 selectionArgs);
@@ -89,16 +102,43 @@ public class LocalCalendarProvider extends ContentProvider {
     @Nullable
     @Override
     public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
-        if (method.equals("drop")) {
+        if (method.equals(CALL_DROP_EVENTS)) {
             this.getWriter().execSQL(Events.SQL_DROP_TABLE);
-        } else if (method.equals("create")) {
+        } else if (method.equals(CALL_CREATE_EVENTS)) {
             this.getWriter().execSQL((Events.SQL_CREATE_TABLE));
+        } else if (method.equals(CALL_DROP_CUSTOMFIELDS)) {
+            this.getWriter().execSQL(CustomFields.SQL_DROP_TABLE);
+        } else if (method.equals(CALL_CREATE_CUSTOMFIELDS)) {
+            this.getWriter().execSQL(CustomFields.SQL_CREATE_TABLE);
         }
         return null;
     }
 
+    protected String getTableName(@NonNull Uri uri) {
+        // This method is frequently called, so use hash map for performance consideration
+        return mTableMap.get(uri);
+    }
+
     public void execSQL(String sql) {
         this.getWriter().execSQL(sql);
+    }
+
+    public static class CustomFields implements BaseColumns {
+        public static final String NAME = "custom_fields";
+        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + NAME);
+
+        public static final String COLUMN_NAME_EVENT_ID = "event_id";
+        public static final String COLUMN_NAME_NAME = "name";
+        public static final String COLUMN_NAME_VALUE = "value";
+
+        public static final String SQL_CREATE_TABLE =
+                "CREATE TABLE " + NAME + " (" +
+                        _ID + " INTEGER PRIMARY KEY," +
+                        COLUMN_NAME_EVENT_ID + " INTEGER," +
+                        COLUMN_NAME_NAME + " TEXT," +
+                        COLUMN_NAME_VALUE + " TEXT)";
+        public static final String SQL_DROP_TABLE =
+                "DROP TABLE IF EXISTS " + NAME;
     }
 
     public static class Events implements BaseColumns {
@@ -148,7 +188,9 @@ public class LocalCalendarProvider extends ContentProvider {
         public void onCreate(SQLiteDatabase db) {
             // Create tables if not exist
             db.execSQL(Events.SQL_CREATE_TABLE);
-            Log.d("DBOpenHelper", "Events " + Events.NAME + " created");
+            db.execSQL(CustomFields.SQL_CREATE_TABLE);
+            Log.d("DBOpenHelper", Events.NAME + " created");
+            Log.d("DBOpenHelper", CustomFields.NAME + " created");
         }
 
         @Override
@@ -159,7 +201,9 @@ public class LocalCalendarProvider extends ContentProvider {
 
         private void initDatabase(SQLiteDatabase db) {
             db.execSQL(Events.SQL_DROP_TABLE);
+            db.execSQL(CustomFields.SQL_DROP_TABLE);
             db.execSQL(Events.SQL_CREATE_TABLE);
+            db.execSQL(CustomFields.SQL_CREATE_TABLE);
         }
     }
 }
