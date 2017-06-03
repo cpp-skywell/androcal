@@ -3,6 +3,7 @@ package cpp_skywell.androcal.ContentProvider.SQLite;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
@@ -16,21 +17,37 @@ import java.util.Map;
 import cpp_skywell.androcal.ContentProvider.EventsDO;
 
 /**
- * Created by zhangliang on 4/23/17.
+ * This an abstraction of the LocalCalendarProvider class. It allows us to use EventsDO directly
+ * instead of doing SQL queries.
+ *
+ * @author Liang Zhang
+ * @author Johnathan Louie
+ * @version 0.3.0
+ * @since 0.0.0
  */
-
 public class EventsDAO {
 
     protected ContentResolver mContentResolver = null;
 
-    public EventsDAO(ContentResolver contentResolver) {
+    private EventsDAO(ContentResolver contentResolver) {
         mContentResolver = contentResolver;
     }
 
+    public EventsDAO(Context context) {
+        this(context.getContentResolver());
+    }
+
+    // this is redundant
     protected ContentResolver getResolver() {
         return mContentResolver;
     }
 
+    /**
+     * Store a new event locally.
+     *
+     * @param event The object containing event data.
+     * @return The _ID of the row.
+     */
     public long add(EventsDO event) {
         ContentValues values = new ContentValues();
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_NAME, event.getName());
@@ -41,11 +58,23 @@ public class EventsDAO {
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_SOURCE, event.getSource().name());
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_DIRTY, event.isDirty() ? 1 : 0);
         Uri result = getResolver().insert(LocalCalendarProvider.Events.CONTENT_URI, values);
-
+        addCustomFields(event);
         return ContentUris.parseId(result);
     }
 
-    public void addCustomFields(EventsDO event) {
+    /**
+     *
+     * @param id The ID of the event.
+     * @return The number of rows deleted.
+     */
+    private int deleteCustomFields(long id)
+    {
+        String selection = LocalCalendarProvider.CustomFields.COLUMN_NAME_EVENT_ID + "=?";
+        String[] selectionArgs = {String.valueOf(id)};
+        return getResolver().delete(LocalCalendarProvider.CustomFields.CONTENT_URI, selection, selectionArgs);
+    }
+
+    private void addCustomFields(EventsDO event) {
         long eventId = event.getId();
         Iterator<Map.Entry<String, String>> itFields = event.getCustomFields().entrySet().iterator();
         while (itFields.hasNext()) { // TODO: use bulk insert
@@ -88,15 +117,17 @@ public class EventsDAO {
         EventsDO event = null;
         if (cursor.getCount() == 1) {
             cursor.moveToFirst();
-            event = this.mapEventsColumns(cursor);
+            event = mapEventsColumns(cursor);
         }
         cursor.close();
+
+        event.setCustomFields(getCustomFields(id));
 
         return event;
     }
 
-    public Map<String, String> getCustomFields(long eventId) {
-        // Colums to return
+    private Map<String, String> getCustomFields(long eventId) {
+        // Columns to return
         String[] columns = {
                 LocalCalendarProvider.CustomFields.COLUMN_NAME_NAME,
                 LocalCalendarProvider.CustomFields.COLUMN_NAME_VALUE
@@ -129,7 +160,7 @@ public class EventsDAO {
     }
 
     public int cancel(long eventId) {
-        return this.updateStatusById(eventId, EventsDO.STATUS_CANCEL);
+        return updateStatusById(eventId, EventsDO.STATUS_CANCEL);
     }
 
     public int updateStatusById(long id, int status) {
@@ -156,6 +187,7 @@ public class EventsDAO {
         String[] selectionArgs = {String.valueOf(id)};
 
         // Execute
+        deleteCustomFields(id);
         return getResolver().delete(LocalCalendarProvider.Events.CONTENT_URI, selection, selectionArgs);
     }
 
@@ -183,6 +215,9 @@ public class EventsDAO {
         String selection = LocalCalendarProvider.Events._ID + "=?";
         String[] selectionArgs = {String.valueOf(newEvent.getId())};
 
+        deleteCustomFields(newEvent.getId());
+        addCustomFields(newEvent);
+
         // Execute
         return getResolver().update(
                 LocalCalendarProvider.Events.CONTENT_URI,
@@ -199,8 +234,6 @@ public class EventsDAO {
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_END, newEvent.getEnd().getTime());
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_STATUS, newEvent.getStatus());
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_DIRTY, newEvent.isDirty() ? 1 : 0);
-//        values.put(Events.COLUMN_NAME_REFID, newEvent.getRefId());
-//        values.put(Events.COLUMN_NAME_SOURCE, newEvent.getSource().name());
 
         // Filters
         String selection = LocalCalendarProvider.Events.COLUMN_NAME_SOURCE + "=? AND " + LocalCalendarProvider.Events.COLUMN_NAME_REFID + "=?";
@@ -243,7 +276,7 @@ public class EventsDAO {
         // Fetch result
         List<EventsDO> result = new ArrayList<EventsDO>();
         while (cursor.moveToNext()) {
-            EventsDO event = this.mapEventsColumns(cursor);
+            EventsDO event = mapEventsColumns(cursor);
             result.add(event);
         }
         cursor.close();
@@ -289,7 +322,7 @@ public class EventsDAO {
         // Fetch result
         List<EventsDO> result = new ArrayList<EventsDO>();
         while (cursor.moveToNext()) {
-            EventsDO event = this.mapEventsColumns(cursor);
+            EventsDO event = mapEventsColumns(cursor);
             result.add(event);
         }
         cursor.close();

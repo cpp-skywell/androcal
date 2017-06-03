@@ -3,7 +3,6 @@ package cpp_skywell.androcal.ContentProvider;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by zhangliang on 4/23/17.
@@ -14,12 +13,9 @@ public class EventsDO {
     public static final int STATUS_NORMAL = 1;
     public static final int STATUS_CANCEL = 2;
 
-    public static enum Source {
+    public enum Source {
         NONE, GOOGLE, OTHER;
     }
-
-    ;
-
 
     protected long id;
     protected String name;
@@ -46,7 +42,6 @@ public class EventsDO {
     public void setCustomValue(String key, String value) {
         this.customFields.put(key, value);
     }
-
 
     public long getId() {
         return id;
