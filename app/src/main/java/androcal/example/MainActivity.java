@@ -1,4 +1,4 @@
-package cpp_skywell.androcal;
+package androcal.example;
 
 import android.accounts.Account;
 import android.app.AlertDialog;
@@ -10,10 +10,10 @@ import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
 
-import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
-import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
-import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAOFactory;
-import cpp_skywell.androcal.ContentProvider.SQLite.LocalCalendarProvider;
+import androcal.sync.GEventsDAO;
+import androcal.provider.EventsDAO;
+import androcal.provider.LocalCalendarProvider;
+import cpp_skywell.androcal.R;
 
 public class MainActivity extends BaseActivity {
 

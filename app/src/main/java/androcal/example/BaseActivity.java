@@ -1,4 +1,4 @@
-package cpp_skywell.androcal;
+package androcal.example;
 
 import android.Manifest;
 import android.accounts.Account;
@@ -21,9 +21,9 @@ import com.google.api.services.calendar.CalendarScopes;
 
 import java.util.Arrays;
 
-import cpp_skywell.androcal.ContentProvider.Authenticator;
-import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
-import cpp_skywell.androcal.ContentProvider.SQLite.LocalCalendarProvider;
+import androcal.sync.Authenticator;
+import androcal.sync.GEventsDAO;
+import androcal.provider.LocalCalendarProvider;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 

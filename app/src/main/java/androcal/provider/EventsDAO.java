@@ -1,4 +1,4 @@
-package cpp_skywell.androcal.ContentProvider.SQLite;
+package androcal.provider;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -14,22 +14,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import cpp_skywell.androcal.ContentProvider.EventsDO;
-
 /**
  * This an abstraction of the LocalCalendarProvider class. It allows us to use EventsDO directly
  * instead of doing SQL queries.
  *
  * @author Liang Zhang
  * @author Johnathan Louie
- * @version 0.3.0
+ * @version 0.3.1
  * @since 0.0.0
  */
 public class EventsDAO {
 
     protected ContentResolver mContentResolver = null;
 
-    private EventsDAO(ContentResolver contentResolver) {
+    public EventsDAO(ContentResolver contentResolver) {
         mContentResolver = contentResolver;
     }
 
@@ -54,7 +52,7 @@ public class EventsDAO {
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_START, event.getStart().getTime());
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_END, event.getEnd().getTime());
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_STATUS, event.getStatus());
-        values.put(LocalCalendarProvider.Events.COLUMN_NAME_REFID, event.getRefId());
+        values.put(LocalCalendarProvider.Events.WEB_ID, event.getRefId());
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_SOURCE, event.getSource().name());
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_DIRTY, event.isDirty() ? 1 : 0);
         Uri result = getResolver().insert(LocalCalendarProvider.Events.CONTENT_URI, values);
@@ -96,7 +94,7 @@ public class EventsDAO {
                 LocalCalendarProvider.Events.COLUMN_NAME_END,
                 LocalCalendarProvider.Events.COLUMN_NAME_STATUS,
                 LocalCalendarProvider.Events.COLUMN_NAME_SOURCE,
-                LocalCalendarProvider.Events.COLUMN_NAME_REFID,
+                LocalCalendarProvider.Events.WEB_ID,
                 LocalCalendarProvider.Events.COLUMN_NAME_DIRTY
         };
 
@@ -160,10 +158,10 @@ public class EventsDAO {
     }
 
     public int cancel(long eventId) {
-        return updateStatusById(eventId, EventsDO.STATUS_CANCEL);
+        return updateStatusByLocalId(eventId, EventsDO.STATUS_CANCEL);
     }
 
-    public int updateStatusById(long id, int status) {
+    public int updateStatusByLocalId(long id, int status) {
         // New values
         ContentValues values = new ContentValues();
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_DIRTY, 1);
@@ -181,7 +179,7 @@ public class EventsDAO {
                 selectionArgs);
     }
 
-    public int deleteById(long id) {
+    public int deleteByLocalId(long id) {
         // Filters
         String selection = LocalCalendarProvider.Events._ID + "=?";
         String[] selectionArgs = {String.valueOf(id)};
@@ -191,32 +189,32 @@ public class EventsDAO {
         return getResolver().delete(LocalCalendarProvider.Events.CONTENT_URI, selection, selectionArgs);
     }
 
-    public int deleteByRefId(EventsDO.Source source, String refId) {
+    public int deleteByWebId(EventsDO.Source source, String webId) {
         // Filters
-        String selection = LocalCalendarProvider.Events.COLUMN_NAME_SOURCE + "=? AND " + LocalCalendarProvider.Events.COLUMN_NAME_REFID + "=?";
-        String[] selectionArgs = {source.name(), refId};
+        String selection = LocalCalendarProvider.Events.COLUMN_NAME_SOURCE + "=? AND " + LocalCalendarProvider.Events.WEB_ID + "=?";
+        String[] selectionArgs = {source.name(), webId};
 
         // Execute
         return getResolver().delete(LocalCalendarProvider.Events.CONTENT_URI, selection, selectionArgs);
     }
 
-    public int updateById(EventsDO newEvent) {
+    public int updateByLocalId(EventsDO event) {
         // New values
         ContentValues values = new ContentValues();
-        values.put(LocalCalendarProvider.Events.COLUMN_NAME_NAME, newEvent.getName());
-        values.put(LocalCalendarProvider.Events.COLUMN_NAME_START, newEvent.getStart().getTime());
-        values.put(LocalCalendarProvider.Events.COLUMN_NAME_END, newEvent.getEnd().getTime());
-        values.put(LocalCalendarProvider.Events.COLUMN_NAME_STATUS, newEvent.getStatus());
-        values.put(LocalCalendarProvider.Events.COLUMN_NAME_REFID, newEvent.getRefId());
-        values.put(LocalCalendarProvider.Events.COLUMN_NAME_SOURCE, newEvent.getSource().name());
-        values.put(LocalCalendarProvider.Events.COLUMN_NAME_DIRTY, newEvent.isDirty() ? 1 : 0);
+        values.put(LocalCalendarProvider.Events.COLUMN_NAME_NAME, event.getName());
+        values.put(LocalCalendarProvider.Events.COLUMN_NAME_START, event.getStart().getTime());
+        values.put(LocalCalendarProvider.Events.COLUMN_NAME_END, event.getEnd().getTime());
+        values.put(LocalCalendarProvider.Events.COLUMN_NAME_STATUS, event.getStatus());
+        values.put(LocalCalendarProvider.Events.WEB_ID, event.getRefId());
+        values.put(LocalCalendarProvider.Events.COLUMN_NAME_SOURCE, event.getSource().name());
+        values.put(LocalCalendarProvider.Events.COLUMN_NAME_DIRTY, event.isDirty() ? 1 : 0);
 
         // Filters
         String selection = LocalCalendarProvider.Events._ID + "=?";
-        String[] selectionArgs = {String.valueOf(newEvent.getId())};
+        String[] selectionArgs = {String.valueOf(event.getId())};
 
-        deleteCustomFields(newEvent.getId());
-        addCustomFields(newEvent);
+        deleteCustomFields(event.getId());
+        addCustomFields(event);
 
         // Execute
         return getResolver().update(
@@ -226,7 +224,7 @@ public class EventsDAO {
                 selectionArgs);
     }
 
-    public int updateByRefId(EventsDO newEvent) {
+    public int updateByWebId(EventsDO newEvent) {
         // New values
         ContentValues values = new ContentValues();
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_NAME, newEvent.getName());
@@ -236,7 +234,7 @@ public class EventsDAO {
         values.put(LocalCalendarProvider.Events.COLUMN_NAME_DIRTY, newEvent.isDirty() ? 1 : 0);
 
         // Filters
-        String selection = LocalCalendarProvider.Events.COLUMN_NAME_SOURCE + "=? AND " + LocalCalendarProvider.Events.COLUMN_NAME_REFID + "=?";
+        String selection = LocalCalendarProvider.Events.COLUMN_NAME_SOURCE + "=? AND " + LocalCalendarProvider.Events.WEB_ID + "=?";
         String[] selectionArgs = {newEvent.getSource().name(), newEvent.getRefId()};
 
         // Execute
@@ -256,7 +254,7 @@ public class EventsDAO {
                 LocalCalendarProvider.Events.COLUMN_NAME_END,
                 LocalCalendarProvider.Events.COLUMN_NAME_STATUS,
                 LocalCalendarProvider.Events.COLUMN_NAME_SOURCE,
-                LocalCalendarProvider.Events.COLUMN_NAME_REFID,
+                LocalCalendarProvider.Events.WEB_ID,
                 LocalCalendarProvider.Events.COLUMN_NAME_DIRTY
         };
 
@@ -293,7 +291,7 @@ public class EventsDAO {
                 LocalCalendarProvider.Events.COLUMN_NAME_END,
                 LocalCalendarProvider.Events.COLUMN_NAME_STATUS,
                 LocalCalendarProvider.Events.COLUMN_NAME_SOURCE,
-                LocalCalendarProvider.Events.COLUMN_NAME_REFID,
+                LocalCalendarProvider.Events.WEB_ID,
                 LocalCalendarProvider.Events.COLUMN_NAME_DIRTY
 
         };
@@ -361,7 +359,7 @@ public class EventsDAO {
         index = cursor.getColumnIndex(LocalCalendarProvider.Events.COLUMN_NAME_SOURCE);
         event.setSource(index == -1 ? EventsDO.Source.NONE : EventsDO.Source.valueOf(cursor.getString(index)));
 
-        index = cursor.getColumnIndex(LocalCalendarProvider.Events.COLUMN_NAME_REFID);
+        index = cursor.getColumnIndex(LocalCalendarProvider.Events.WEB_ID);
         event.setRefId(index == -1 ? null : cursor.getString(index));
 
         index = cursor.getColumnIndex(LocalCalendarProvider.Events.COLUMN_NAME_DIRTY);

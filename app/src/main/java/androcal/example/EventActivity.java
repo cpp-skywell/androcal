@@ -1,4 +1,4 @@
-package cpp_skywell.androcal;
+package androcal.example;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,9 +9,9 @@ import android.widget.TextView;
 import java.util.Iterator;
 import java.util.Map;
 
-import cpp_skywell.androcal.ContentProvider.EventsDO;
-import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
-import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAOFactory;
+import androcal.provider.EventsDO;
+import androcal.provider.EventsDAO;
+import cpp_skywell.androcal.R;
 
 public class EventActivity extends AppCompatActivity {
 
@@ -32,12 +32,12 @@ public class EventActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.textView3)).setText("End: " + event.getEnd().toString());
 
         // DEBUG custom fields
-        Map<String, String> customFields = dao.getCustomFields(id);
-        Iterator<Map.Entry<String, String>> itFields = customFields.entrySet().iterator();
-        while(itFields.hasNext()) {
-            Map.Entry<String, String> entry = itFields.next();
-            Log.d("EventActivity", entry.getKey() + ":" + entry.getValue());
-        }
+//        Map<String, String> customFields = dao.getCustomFields(id);
+//        Iterator<Map.Entry<String, String>> itFields = customFields.entrySet().iterator();
+//        while(itFields.hasNext()) {
+//            Map.Entry<String, String> entry = itFields.next();
+//            Log.d("EventActivity", entry.getKey() + ":" + entry.getValue());
+//        }
 
     }
 

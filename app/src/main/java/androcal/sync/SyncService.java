@@ -1,4 +1,4 @@
-package cpp_skywell.androcal.Service;
+package androcal.sync;
 
 import android.app.Service;
 import android.content.Intent;

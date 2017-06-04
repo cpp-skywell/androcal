@@ -1,14 +1,12 @@
-package cpp_skywell.androcal.ContentProvider.Google;
+package androcal.sync;
 
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
@@ -30,9 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import cpp_skywell.androcal.ContentProvider.EventsDO;
-import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
-import cpp_skywell.androcal.MainActivity;
+import androcal.provider.EventsDO;
 
 /**
  * Created by zhangliang on 4/26/17.

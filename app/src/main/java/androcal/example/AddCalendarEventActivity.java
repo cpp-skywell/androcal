@@ -1,27 +1,20 @@
-package cpp_skywell.androcal;
+package androcal.example;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.TextView;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import cpp_skywell.androcal.ContentProvider.EventsDO;
-import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
-import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAO;
-import cpp_skywell.androcal.ContentProvider.SQLite.EventsDAOFactory;
+import androcal.provider.EventsDO;
+import androcal.provider.EventsDAO;
+import cpp_skywell.androcal.R;
 
 public class AddCalendarEventActivity extends AppCompatActivity {
 
@@ -119,10 +112,10 @@ public class AddCalendarEventActivity extends AppCompatActivity {
             long rowId = eventsDAO.add(event);
 
             // DEBUG custom fields
-            event.setId(rowId);
-            event.setCustomValue("ckey1", "cvalue1");
-            event.setCustomValue("ckey2", "cvalue2");
-            eventsDAO.addCustomFields(event);
+//            event.setId(rowId);
+//            event.setCustomValue("ckey1", "cvalue1");
+//            event.setCustomValue("ckey2", "cvalue2");
+//            eventsDAO.addCustomFields(event);
 
             showMessage(rowId, view);
         } catch (ParseException e) {

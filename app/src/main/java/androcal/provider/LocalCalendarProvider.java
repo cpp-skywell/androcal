@@ -1,4 +1,4 @@
-package cpp_skywell.androcal.ContentProvider.SQLite;
+package androcal.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -151,7 +151,7 @@ public class LocalCalendarProvider extends ContentProvider {
         public static final String COLUMN_NAME_STATUS = "status";
         public static final String COLUMN_NAME_RECURRENCE = "recurrence";
         public static final String COLUMN_NAME_SOURCE = "source";
-        public static final String COLUMN_NAME_REFID = "ref_id";
+        public static final String WEB_ID = "ref_id";
         public static final String COLUMN_NAME_DIRTY = "dirty";
 
         public static final String SQL_CREATE_TABLE =
@@ -162,7 +162,7 @@ public class LocalCalendarProvider extends ContentProvider {
                         COLUMN_NAME_END + " INTEGER," +
                         COLUMN_NAME_RECURRENCE + " TEXT," +
                         COLUMN_NAME_SOURCE + " TEXT," +
-                        COLUMN_NAME_REFID + " TEXT," +
+                        WEB_ID + " TEXT," +
                         COLUMN_NAME_DIRTY + " INTEGER," +
                         COLUMN_NAME_STATUS + " INTEGER)";
         public static final String SQL_DROP_TABLE =

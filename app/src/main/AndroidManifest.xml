@@ -20,7 +20,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".MainActivity">
+        <activity android:name="androcal.example.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,12 +28,12 @@
         </activity>
 
         <service
-            android:name=".Service.GoogleSyncService"
+            android:name="androcal.sync.GoogleSyncService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <service
-            android:name=".Service.SyncService"
+            android:name="androcal.sync.SyncService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
@@ -43,7 +43,7 @@
                 android:resource="@xml/syncadapter" />
         </service>
 
-        <service android:name=".ContentProvider.AuthenticatorService">
+        <service android:name="androcal.sync.AuthenticatorService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -53,20 +53,20 @@
         </service>
 
         <activity
-            android:name=".AddCalendarEventActivity"
+            android:name="androcal.example.AddCalendarEventActivity"
             android:windowSoftInputMode="adjustNothing" />
 
         <activity
-            android:name=".ModifyCalendarEventActivity"
+            android:name="androcal.example.ModifyCalendarEventActivity"
             android:windowSoftInputMode="adjustNothing" />
 
         <provider
-            android:name=".ContentProvider.SQLite.LocalCalendarProvider"
+            android:name="androcal.provider.LocalCalendarProvider"
             android:authorities="cpp_skywell.androcal.provider" />
 
-        <activity android:name=".ListEventsActivity" />
+        <activity android:name="androcal.example.ListEventsActivity" />
         <activity
-            android:name=".EventActivity"
+            android:name="androcal.example.EventActivity"
             android:label="@string/title_activity_event"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>

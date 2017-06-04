@@ -1,4 +1,4 @@
-package cpp_skywell.androcal;
+package androcal.example;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,7 +13,8 @@ import com.google.api.services.calendar.model.Events;
 import java.util.ArrayList;
 import java.util.List;
 
-import cpp_skywell.androcal.ContentProvider.Google.GEventsDAO;
+import androcal.sync.GEventsDAO;
+import cpp_skywell.androcal.R;
 
 public class ModifyCalendarEventActivity extends AppCompatActivity {
     private Events events;

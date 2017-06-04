@@ -1,4 +1,4 @@
-package cpp_skywell.androcal;
+package androcal.example;
 
 import android.app.ListActivity;
 import android.app.LoaderManager;
@@ -14,7 +14,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 
-import cpp_skywell.androcal.ContentProvider.SQLite.LocalCalendarProvider;
+import androcal.provider.LocalCalendarProvider;
 
 public class ListEventsActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 

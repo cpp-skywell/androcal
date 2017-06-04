@@ -1,4 +1,4 @@
-package cpp_skywell.androcal;
+package androcal.example;
 
 import android.app.Dialog;
 import android.app.DialogFragment;

@@ -1,4 +1,4 @@
-package cpp_skywell.androcal.ContentProvider;
+package androcal.provider;
 
 import java.util.Date;
 import java.util.HashMap;
