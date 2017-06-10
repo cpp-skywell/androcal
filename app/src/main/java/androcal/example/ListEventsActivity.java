@@ -14,7 +14,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 
-import androcal.provider.LocalCalendarProvider;
+import androcal.provider.Events;
 
 public class ListEventsActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -23,10 +23,10 @@ public class ListEventsActivity extends ListActivity implements LoaderManager.Lo
 
     // These are the Contacts rows that we will retrieve
     static final String[] PROJECTION = new String[]{
-            LocalCalendarProvider.Events._ID,
-            LocalCalendarProvider.Events.COLUMN_NAME_NAME,
-            LocalCalendarProvider.Events.COLUMN_NAME_START,
-            LocalCalendarProvider.Events.COLUMN_NAME_END};
+            Events._ID,
+            Events.COLUMN_NAME_NAME,
+            Events.COLUMN_NAME_START,
+            Events.COLUMN_NAME_END};
 
     // This is the select criteria
     static final String SELECTION = "";
@@ -46,7 +46,7 @@ public class ListEventsActivity extends ListActivity implements LoaderManager.Lo
         root.addView(progressBar);
 
         // For the cursor adapter, specify which columns go into which views
-        String[] fromColumns = {LocalCalendarProvider.Events.COLUMN_NAME_NAME};
+        String[] fromColumns = {Events.COLUMN_NAME_NAME};
         int[] toViews = {android.R.id.text1}; // The TextView in simple_list_item_1
 
         // Create an empty adapter we will use to display the loaded data.
@@ -63,7 +63,7 @@ public class ListEventsActivity extends ListActivity implements LoaderManager.Lo
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        return new CursorLoader(this, LocalCalendarProvider.Events.CONTENT_URI, PROJECTION, SELECTION, null, null);
+        return new CursorLoader(this, Events.CONTENT_URI, PROJECTION, SELECTION, null, null);
     }
 
     // Called when a previously created loader has finished loading
