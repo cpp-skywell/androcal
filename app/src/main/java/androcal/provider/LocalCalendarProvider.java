@@ -27,8 +27,8 @@ public class LocalCalendarProvider extends ContentProvider {
     private static final Map<Uri, String> mTableMap = new HashMap<Uri, String>();
 
     static {
-        mTableMap.put(Events.CONTENT_URI, Events.NAME);
-        mTableMap.put(CustomFields.CONTENT_URI, CustomFields.NAME);
+        mTableMap.put(EventsContract.CONTENT_URI, EventsContract.TABLE_NAME);
+        mTableMap.put(CustomFieldsContract.CONTENT_URI, CustomFieldsContract.TABLE_NAME);
     }
 
     private OpenHelper mOpenHelper = null;
@@ -77,7 +77,7 @@ public class LocalCalendarProvider extends ContentProvider {
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         SQLiteDatabase db = this.getWriter();
         long id = db.insert(getTableName(uri), null, values);
-        return ContentUris.withAppendedId(Events.CONTENT_URI, id);
+        return ContentUris.withAppendedId(EventsContract.CONTENT_URI, id);
     }
 
     @Override
@@ -100,13 +100,13 @@ public class LocalCalendarProvider extends ContentProvider {
     @Override
     public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
         if (method.equals(CALL_DROP_EVENTS)) {
-            this.getWriter().execSQL(Events.SQL_DROP_TABLE);
+            this.getWriter().execSQL(EventsContract.SQL_DROP_TABLE);
         } else if (method.equals(CALL_CREATE_EVENTS)) {
-            this.getWriter().execSQL((Events.SQL_CREATE_TABLE));
+            this.getWriter().execSQL((EventsContract.SQL_CREATE_TABLE));
         } else if (method.equals(CALL_DROP_CUSTOMFIELDS)) {
-            this.getWriter().execSQL(CustomFields.SQL_DROP_TABLE);
+            this.getWriter().execSQL(CustomFieldsContract.SQL_DROP_TABLE);
         } else if (method.equals(CALL_CREATE_CUSTOMFIELDS)) {
-            this.getWriter().execSQL(CustomFields.SQL_CREATE_TABLE);
+            this.getWriter().execSQL(CustomFieldsContract.SQL_CREATE_TABLE);
         }
         return null;
     }

@@ -14,7 +14,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 
-import androcal.provider.Events;
+import androcal.provider.EventsContract;
 
 public class ListEventsActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -23,10 +23,10 @@ public class ListEventsActivity extends ListActivity implements LoaderManager.Lo
 
     // These are the Contacts rows that we will retrieve
     static final String[] PROJECTION = new String[]{
-            Events._ID,
-            Events.COLUMN_NAME_NAME,
-            Events.COLUMN_NAME_START,
-            Events.COLUMN_NAME_END};
+            EventsContract._ID,
+            EventsContract.EVENT_TITLE,
+            EventsContract.START,
+            EventsContract.END};
 
     // This is the select criteria
     static final String SELECTION = "";
@@ -46,7 +46,7 @@ public class ListEventsActivity extends ListActivity implements LoaderManager.Lo
         root.addView(progressBar);
 
         // For the cursor adapter, specify which columns go into which views
-        String[] fromColumns = {Events.COLUMN_NAME_NAME};
+        String[] fromColumns = {EventsContract.EVENT_TITLE};
         int[] toViews = {android.R.id.text1}; // The TextView in simple_list_item_1
 
         // Create an empty adapter we will use to display the loaded data.
@@ -63,7 +63,7 @@ public class ListEventsActivity extends ListActivity implements LoaderManager.Lo
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        return new CursorLoader(this, Events.CONTENT_URI, PROJECTION, SELECTION, null, null);
+        return new CursorLoader(this, EventsContract.CONTENT_URI, PROJECTION, SELECTION, null, null);
     }
 
     // Called when a previously created loader has finished loading

@@ -26,10 +26,10 @@ public class OpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Create tables if not exist
-        db.execSQL(Events.SQL_CREATE_TABLE);
-        db.execSQL(CustomFields.SQL_CREATE_TABLE);
-        Log.d("DBOpenHelper", Events.NAME + " created");
-        Log.d("DBOpenHelper", CustomFields.NAME + " created");
+        db.execSQL(EventsContract.SQL_CREATE_TABLE);
+        db.execSQL(CustomFieldsContract.SQL_CREATE_TABLE);
+        Log.d("DBOpenHelper", EventsContract.TABLE_NAME + " created");
+        Log.d("DBOpenHelper", CustomFieldsContract.TABLE_NAME + " created");
     }
 
     @Override
@@ -39,9 +39,9 @@ public class OpenHelper extends SQLiteOpenHelper {
     }
 
     private void initDatabase(SQLiteDatabase db) {
-        db.execSQL(Events.SQL_DROP_TABLE);
-        db.execSQL(CustomFields.SQL_DROP_TABLE);
-        db.execSQL(Events.SQL_CREATE_TABLE);
-        db.execSQL(CustomFields.SQL_CREATE_TABLE);
+        db.execSQL(EventsContract.SQL_DROP_TABLE);
+        db.execSQL(CustomFieldsContract.SQL_DROP_TABLE);
+        db.execSQL(EventsContract.SQL_CREATE_TABLE);
+        db.execSQL(CustomFieldsContract.SQL_CREATE_TABLE);
     }
 }
