@@ -81,7 +81,7 @@ public class ListEventsActivity extends ListActivity implements LoaderManager.Lo
         mAdapter.swapCursor(null);
     }
 
-    public static final String EVENT_ID = "cpp_skywell.androcal.EVENT_ID";
+    public static final String EVENT_ID = "androcal.LOCAL_ID";
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {

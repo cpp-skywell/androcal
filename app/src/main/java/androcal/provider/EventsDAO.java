@@ -67,7 +67,7 @@ public class EventsDAO {
      */
     private int deleteCustomFields(long id)
     {
-        String selection = CustomFieldsContract.EVENT_ID + "=?";
+        String selection = CustomFieldsContract.LOCAL_ID + "=?";
         String[] selectionArgs = {String.valueOf(id)};
         return getResolver().delete(CustomFieldsContract.CONTENT_URI, selection, selectionArgs);
     }
@@ -78,7 +78,7 @@ public class EventsDAO {
         while (itFields.hasNext()) { // TODO: use bulk insert
             Map.Entry<String, String> entry = itFields.next();
             ContentValues values = new ContentValues();
-            values.put(CustomFieldsContract.EVENT_ID, eventId);
+            values.put(CustomFieldsContract.LOCAL_ID, eventId);
             values.put(CustomFieldsContract.FIELD_NAME, entry.getKey());
             values.put(CustomFieldsContract.VALUE, entry.getValue());
             getResolver().insert(CustomFieldsContract.CONTENT_URI, values);
@@ -131,7 +131,7 @@ public class EventsDAO {
                 CustomFieldsContract.VALUE
         };
         // Filters
-        String selection = CustomFieldsContract.EVENT_ID + "=?";
+        String selection = CustomFieldsContract.LOCAL_ID + "=?";
         String[] selectionArgs = {String.valueOf(eventId)};
         // Execute SQL
         Cursor cursor = getResolver().query(
