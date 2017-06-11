@@ -23,12 +23,15 @@ public class LocalCalendarProvider extends ContentProvider {
     public static final String CALL_CREATE_EVENTS = "create_events";
     public static final String CALL_DROP_CUSTOMFIELDS = "drop_cust";
     public static final String CALL_CREATE_CUSTOMFIELDS = "create_cust";
+    public static final String CALL_DROP_WEB_CALENDARS = "drop_web_calendars";
+    public static final String CALL_CREATE_WEB_CALENDARS = "create_web_calendars";
 
     private static final Map<Uri, String> mTableMap = new HashMap<Uri, String>();
 
     static {
         mTableMap.put(EventsContract.CONTENT_URI, EventsContract.TABLE_NAME);
         mTableMap.put(CustomFieldsContract.CONTENT_URI, CustomFieldsContract.TABLE_NAME);
+        mTableMap.put(WebCalendarContract.CONTENT_URI, WebCalendarContract.TABLE_NAME);
     }
 
     private OpenHelper mOpenHelper = null;
@@ -99,7 +102,27 @@ public class LocalCalendarProvider extends ContentProvider {
     @Nullable
     @Override
     public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
-        if (method.equals(CALL_DROP_EVENTS)) {
+        switch (method) {
+            case CALL_DROP_EVENTS:
+                this.getWriter().execSQL(EventsContract.SQL_DROP_TABLE);
+                break;
+            case CALL_CREATE_EVENTS:
+                this.getWriter().execSQL((EventsContract.SQL_CREATE_TABLE));
+                break;
+            case CALL_DROP_CUSTOMFIELDS:
+                this.getWriter().execSQL(CustomFieldsContract.SQL_DROP_TABLE);
+                break;
+            case CALL_CREATE_CUSTOMFIELDS:
+                this.getWriter().execSQL(CustomFieldsContract.SQL_CREATE_TABLE);
+                break;
+            case CALL_DROP_WEB_CALENDARS:
+                this.getWriter().execSQL(WebCalendarContract.SQL_DROP_TABLE);
+                break;
+            case CALL_CREATE_WEB_CALENDARS:
+                this.getWriter().execSQL(WebCalendarContract.SQL_CREATE_TABLE);
+                break;
+        }
+        /*if (method.equals(CALL_DROP_EVENTS)) {
             this.getWriter().execSQL(EventsContract.SQL_DROP_TABLE);
         } else if (method.equals(CALL_CREATE_EVENTS)) {
             this.getWriter().execSQL((EventsContract.SQL_CREATE_TABLE));
@@ -107,7 +130,7 @@ public class LocalCalendarProvider extends ContentProvider {
             this.getWriter().execSQL(CustomFieldsContract.SQL_DROP_TABLE);
         } else if (method.equals(CALL_CREATE_CUSTOMFIELDS)) {
             this.getWriter().execSQL(CustomFieldsContract.SQL_CREATE_TABLE);
-        }
+        }*/
         return null;
     }
 
