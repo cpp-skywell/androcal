@@ -10,9 +10,9 @@ import android.net.Uri;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This an abstraction of the LocalCalendarProvider class. It allows us to use EventsDO directly
@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public class EventsDAO {
 
-    protected ContentResolver mContentResolver = null;
+    private ContentResolver mContentResolver;
 
     public EventsDAO(ContentResolver contentResolver) {
         mContentResolver = contentResolver;
@@ -35,11 +35,6 @@ public class EventsDAO {
         this(context.getContentResolver());
     }
 
-    // this is redundant
-    protected ContentResolver getResolver() {
-        return mContentResolver;
-    }
-
     /**
      * Store a new event locally.
      *
@@ -47,42 +42,10 @@ public class EventsDAO {
      * @return The _ID of the row.
      */
     public long add(EventsDO event) {
-        ContentValues values = new ContentValues();
-        values.put(EventsContract.EVENT_TITLE, event.getName());
-        values.put(EventsContract.START, event.getStart().getTime());
-        values.put(EventsContract.END, event.getEnd().getTime());
-        values.put(EventsContract.STATUS, event.getStatus());
-        values.put(EventsContract.WEB_ID, event.getRefId());
-        values.put(EventsContract.WEB_CALENDAR, event.getSource().name());
-        values.put(EventsContract.DIRTY, event.isDirty() ? 1 : 0);
-        Uri result = getResolver().insert(EventsContract.CONTENT_URI, values);
+        ContentValues values = getEventValues(event);
+        Uri result = mContentResolver.insert(EventsContract.CONTENT_URI, values);
         addCustomFields(event);
         return ContentUris.parseId(result);
-    }
-
-    /**
-     *
-     * @param id The ID of the event.
-     * @return The number of rows deleted.
-     */
-    private int deleteCustomFields(long id)
-    {
-        String selection = CustomFieldsContract.LOCAL_ID + "=?";
-        String[] selectionArgs = {String.valueOf(id)};
-        return getResolver().delete(CustomFieldsContract.CONTENT_URI, selection, selectionArgs);
-    }
-
-    private void addCustomFields(EventsDO event) {
-        long eventId = event.getId();
-        Iterator<Map.Entry<String, String>> itFields = event.getCustomFields().entrySet().iterator();
-        while (itFields.hasNext()) { // TODO: use bulk insert
-            Map.Entry<String, String> entry = itFields.next();
-            ContentValues values = new ContentValues();
-            values.put(CustomFieldsContract.LOCAL_ID, eventId);
-            values.put(CustomFieldsContract.FIELD_NAME, entry.getKey());
-            values.put(CustomFieldsContract.VALUE, entry.getValue());
-            getResolver().insert(CustomFieldsContract.CONTENT_URI, values);
-        }
     }
 
     public EventsDO get(long id) {
@@ -103,7 +66,7 @@ public class EventsDAO {
         String[] selectionArgs = {String.valueOf(id)};
 
         // Execute SQL
-        Cursor cursor = getResolver().query(
+        Cursor cursor = mContentResolver.query(
                 EventsContract.CONTENT_URI,
                 columns,
                 selection,
@@ -124,55 +87,20 @@ public class EventsDAO {
         return event;
     }
 
-    private Map<String, String> getCustomFields(long eventId) {
-        // Columns to return
-        String[] columns = {
-                CustomFieldsContract.FIELD_NAME,
-                CustomFieldsContract.VALUE
-        };
-        // Filters
-        String selection = CustomFieldsContract.LOCAL_ID + "=?";
-        String[] selectionArgs = {String.valueOf(eventId)};
-        // Execute SQL
-        Cursor cursor = getResolver().query(
-                CustomFieldsContract.CONTENT_URI,
-                columns,
-                selection,
-                selectionArgs,
-                null
-        );
-        // Fetch result
-        Map<String, String> customFields = new HashMap<String, String>();
-        while (cursor.moveToNext()) {
-            int index = cursor.getColumnIndex(CustomFieldsContract.FIELD_NAME);
-            String name = cursor.getString(index);
-
-            index = cursor.getColumnIndex(CustomFieldsContract.VALUE);
-            String value = cursor.getString(index);
-
-            customFields.put(name, value);
-        }
-        cursor.close();
-
-        return customFields;
-    }
-
     public int cancel(long eventId) {
         return updateStatusByLocalId(eventId, EventsDO.STATUS_CANCEL);
     }
 
     public int updateStatusByLocalId(long id, int status) {
         // New values
-        ContentValues values = new ContentValues();
-        values.put(EventsContract.DIRTY, 1);
-        values.put(EventsContract.STATUS, status);
+        ContentValues values = getStatusValues(status);
 
         // Filters
         String selection = EventsContract._ID + "=?";
         String[] selectionArgs = {String.valueOf(id)};
 
         // Execute
-        return getResolver().update(
+        return mContentResolver.update(
                 EventsContract.CONTENT_URI,
                 values,
                 selection,
@@ -186,7 +114,7 @@ public class EventsDAO {
 
         // Execute
         deleteCustomFields(id);
-        return getResolver().delete(EventsContract.CONTENT_URI, selection, selectionArgs);
+        return mContentResolver.delete(EventsContract.CONTENT_URI, selection, selectionArgs);
     }
 
     public int deleteByWebId(EventsDO.Source source, String webId) {
@@ -195,19 +123,12 @@ public class EventsDAO {
         String[] selectionArgs = {source.name(), webId};
 
         // Execute
-        return getResolver().delete(EventsContract.CONTENT_URI, selection, selectionArgs);
+        return mContentResolver.delete(EventsContract.CONTENT_URI, selection, selectionArgs);
     }
 
     public int updateByLocalId(EventsDO event) {
         // New values
-        ContentValues values = new ContentValues();
-        values.put(EventsContract.EVENT_TITLE, event.getName());
-        values.put(EventsContract.START, event.getStart().getTime());
-        values.put(EventsContract.END, event.getEnd().getTime());
-        values.put(EventsContract.STATUS, event.getStatus());
-        values.put(EventsContract.WEB_ID, event.getRefId());
-        values.put(EventsContract.WEB_CALENDAR, event.getSource().name());
-        values.put(EventsContract.DIRTY, event.isDirty() ? 1 : 0);
+        ContentValues values = getEventValues(event);
 
         // Filters
         String selection = EventsContract._ID + "=?";
@@ -217,28 +138,28 @@ public class EventsDAO {
         addCustomFields(event);
 
         // Execute
-        return getResolver().update(
+        return mContentResolver.update(
                 EventsContract.CONTENT_URI,
                 values,
                 selection,
                 selectionArgs);
     }
 
-    public int updateByWebId(EventsDO newEvent) {
+    public int updateByWebId(EventsDO event) {
         // New values
         ContentValues values = new ContentValues();
-        values.put(EventsContract.EVENT_TITLE, newEvent.getName());
-        values.put(EventsContract.START, newEvent.getStart().getTime());
-        values.put(EventsContract.END, newEvent.getEnd().getTime());
-        values.put(EventsContract.STATUS, newEvent.getStatus());
-        values.put(EventsContract.DIRTY, newEvent.isDirty() ? 1 : 0);
+        values.put(EventsContract.EVENT_TITLE, event.getName());
+        values.put(EventsContract.START, event.getStart().getTime());
+        values.put(EventsContract.END, event.getEnd().getTime());
+        values.put(EventsContract.STATUS, event.getStatus());
+        values.put(EventsContract.DIRTY, event.isDirty() ? 1 : 0);
 
         // Filters
         String selection = EventsContract.WEB_CALENDAR + "=? AND " + EventsContract.WEB_ID + "=?";
-        String[] selectionArgs = {newEvent.getSource().name(), newEvent.getRefId()};
+        String[] selectionArgs = {event.getSource().name(), event.getRefId()};
 
         // Execute
-        return getResolver().update(
+        return mContentResolver.update(
                 EventsContract.CONTENT_URI,
                 values,
                 selection,
@@ -263,7 +184,7 @@ public class EventsDAO {
         String[] selectionArgs = {dirty ? "1" : "0"};
 
         // Execute
-        Cursor cursor = getResolver().query(
+        Cursor cursor = mContentResolver.query(
                 EventsContract.CONTENT_URI, // Table name
                 columns, // columns to return
                 selection, // filters for WHERE clause
@@ -293,13 +214,13 @@ public class EventsDAO {
                 EventsContract.WEB_CALENDAR,
                 EventsContract.WEB_ID,
                 EventsContract.DIRTY
-
         };
 
         // Filters
         long now = new Date().getTime();
-        long defaultDateStart = now - 365 * 86400 * 1000; // One year before
-        long defaultDataEnd = now + 365 * 86400 * 1000; // One year after
+        long year = 365L * 24 * 60 * 60 * 1000;
+        long defaultDateStart = now - year; // One year before
+        long defaultDataEnd = now + year; // One year after
         String tsStart = String.valueOf(start != null ? start.getTime() : defaultDateStart);
         String tsEnd = String.valueOf(end != null ? end.getTime() : defaultDataEnd);
         String selection = EventsContract.STATUS + "<>? AND (" + EventsContract.START + " BETWEEN ? AND ? OR " + EventsContract.END + " BETWEEN ? AND ?)";
@@ -309,7 +230,7 @@ public class EventsDAO {
         String order = EventsContract.START + " ASC";
 
         // Execute SQL
-        Cursor cursor = getResolver().query(
+        Cursor cursor = mContentResolver.query(
                 EventsContract.CONTENT_URI, // Table name
                 columns, // columns to return
                 selection, // filters for WHERE clause
@@ -329,13 +250,13 @@ public class EventsDAO {
     }
 
     public void dropTable() {
-        getResolver().call(EventsContract.CONTENT_URI, LocalCalendarProvider.CALL_DROP_EVENTS, null, null);
-        getResolver().call(CustomFieldsContract.CONTENT_URI, LocalCalendarProvider.CALL_DROP_CUSTOMFIELDS, null, null);
+        mContentResolver.call(EventsContract.CONTENT_URI, LocalCalendarProvider.CALL_DROP_EVENTS, null, null);
+        mContentResolver.call(CustomFieldsContract.CONTENT_URI, LocalCalendarProvider.CALL_DROP_CUSTOMFIELDS, null, null);
     }
 
     public void createTable() {
-        getResolver().call(EventsContract.CONTENT_URI, LocalCalendarProvider.CALL_CREATE_EVENTS, null, null);
-        getResolver().call(CustomFieldsContract.CONTENT_URI, LocalCalendarProvider.CALL_CREATE_CUSTOMFIELDS, null, null);
+        mContentResolver.call(EventsContract.CONTENT_URI, LocalCalendarProvider.CALL_CREATE_EVENTS, null, null);
+        mContentResolver.call(CustomFieldsContract.CONTENT_URI, LocalCalendarProvider.CALL_CREATE_CUSTOMFIELDS, null, null);
     }
 
     private EventsDO mapEventsColumns(Cursor cursor) {
@@ -366,5 +287,87 @@ public class EventsDAO {
         event.setDirty(index == -1 ? false : (cursor.getInt(index) == 1));
 
         return event;
+    }
+
+    /**
+     * @param id The ID of the event.
+     * @return The number of rows deleted.
+     */
+    private int deleteCustomFields(long id) {
+        String selection = CustomFieldsContract.LOCAL_ID + "=?";
+        String[] selectionArgs = {String.valueOf(id)};
+        return mContentResolver.delete(CustomFieldsContract.CONTENT_URI, selection, selectionArgs);
+    }
+
+    private void addCustomFields(EventsDO event) {
+        mContentResolver.bulkInsert(CustomFieldsContract.CONTENT_URI, getCustomFieldValues(event));
+    }
+
+    private Map<String, String> getCustomFields(long eventId) {
+        // Columns to return
+        String[] columns = {
+                CustomFieldsContract.FIELD_NAME,
+                CustomFieldsContract.VALUE
+        };
+        // Filters
+        String selection = CustomFieldsContract.LOCAL_ID + "=?";
+        String[] selectionArgs = {String.valueOf(eventId)};
+        // Execute SQL
+        Cursor cursor = mContentResolver.query(
+                CustomFieldsContract.CONTENT_URI,
+                columns,
+                selection,
+                selectionArgs,
+                null
+        );
+        // Fetch result
+        Map<String, String> customFields = new HashMap<String, String>();
+        while (cursor.moveToNext()) {
+            int index = cursor.getColumnIndex(CustomFieldsContract.FIELD_NAME);
+            String name = cursor.getString(index);
+
+            index = cursor.getColumnIndex(CustomFieldsContract.VALUE);
+            String value = cursor.getString(index);
+
+            customFields.put(name, value);
+        }
+        cursor.close();
+
+        return customFields;
+    }
+
+    private ContentValues getEventValues(EventsDO event) {
+        ContentValues values = new ContentValues();
+        values.put(EventsContract.EVENT_TITLE, event.getName());
+        values.put(EventsContract.START, event.getStart().getTime());
+        values.put(EventsContract.END, event.getEnd().getTime());
+        values.put(EventsContract.STATUS, event.getStatus());
+        values.put(EventsContract.WEB_ID, event.getRefId());
+        values.put(EventsContract.WEB_CALENDAR, event.getSource().name());
+        values.put(EventsContract.DIRTY, event.isDirty() ? 1 : 0);
+        return values;
+    }
+
+    private ContentValues[] getCustomFieldValues(EventsDO event) {
+        long eventId = event.getId();
+        Set<Map.Entry<String, String>> itFields = event.getCustomFields().entrySet();
+        ContentValues[] valuesArray = new ContentValues[itFields.size()];
+        int i = 0;
+        for (Map.Entry<String, String> entry : itFields) {
+            ContentValues values = new ContentValues();
+            values.put(CustomFieldsContract.LOCAL_ID, eventId);
+            values.put(CustomFieldsContract.FIELD_NAME, entry.getKey());
+            values.put(CustomFieldsContract.VALUE, entry.getValue());
+            valuesArray[i] = values;
+            i++;
+        }
+        return valuesArray;
+    }
+
+    private ContentValues getStatusValues(int status) {
+        ContentValues values = new ContentValues();
+        values.put(EventsContract.DIRTY, 1);
+        values.put(EventsContract.STATUS, status);
+        return values;
     }
 }

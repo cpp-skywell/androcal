@@ -25,7 +25,7 @@ public class EventsDO {
     protected Source source;
     protected String refId;
     protected boolean dirty = false;
-    protected Map<String, String> customFields= new HashMap<String, String>();
+    protected Map<String, String> customFields = new HashMap<String, String>();
 
     public Map<String, String> getCustomFields() {
         return customFields;
