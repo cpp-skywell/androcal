@@ -3,11 +3,7 @@ package androcal.example;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.TextView;
-
-import java.util.Iterator;
-import java.util.Map;
 
 import androcal.provider.EventsDO;
 import androcal.provider.EventsDAO;

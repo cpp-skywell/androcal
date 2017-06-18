@@ -15,8 +15,8 @@ public class EventsContract implements BaseColumns {
     public static final String END = "end";
     public static final String STATUS = "status";
     public static final String RECURRENCE = "recurrence";
-    public static final String WEB_CALENDAR = "source";
-    public static final String WEB_ID = "ref_id";
+//    public static final String WEB_CALENDAR = "source";
+//    public static final String WEB_ID = "ref_id";
     public static final String DIRTY = "dirty";
 
     public static final String SQL_CREATE_TABLE =
@@ -26,8 +26,8 @@ public class EventsContract implements BaseColumns {
                     START + " INTEGER," +
                     END + " INTEGER," +
                     RECURRENCE + " TEXT," +
-                    WEB_CALENDAR + " TEXT," +
-                    WEB_ID + " TEXT," +
+//                    WEB_CALENDAR + " TEXT," +
+//                    WEB_ID + " TEXT," +
                     DIRTY + " INTEGER," +
                     STATUS + " INTEGER)";
     public static final String SQL_DROP_TABLE =

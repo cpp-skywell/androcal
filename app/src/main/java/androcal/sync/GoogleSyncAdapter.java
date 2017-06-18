@@ -75,7 +75,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
         it = localDeleteEvents.iterator();
         while (it.hasNext()) {
             EventsDO event = it.next();
-            mEventsDAO.deleteByLocalId(event.getId());
+            mEventsDAO.remove(event.getId());
             Log.d("syncUpload.ldel", event.toString());
         }
 
@@ -84,7 +84,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
         while (itReturn.hasNext()) {
             EventsDO newEvent = itReturn.next();
             newEvent.setDirty(false);
-            mEventsDAO.updateByLocalId(newEvent);
+            mEventsDAO.update(newEvent);
             Log.d("syncUpload.new", newEvent.toString());
         }
 
@@ -93,7 +93,7 @@ public class GoogleSyncAdapter extends AbstractThreadedSyncAdapter {
         while (itReturn.hasNext()) {
             EventsDO newEvent = itReturn.next();
             newEvent.setDirty(false);
-            mEventsDAO.updateByLocalId(newEvent);
+            mEventsDAO.update(newEvent);
             Log.d("syncUpload.update", newEvent.toString());
         }
 

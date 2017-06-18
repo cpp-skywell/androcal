@@ -135,7 +135,7 @@ public class GoogleSyncService extends JobService {
             it = localDeleteEvents.iterator();
             while (it.hasNext()) {
                 EventsDO event = it.next();
-                mEventsDAO.deleteByLocalId(event.getId());
+                mEventsDAO.remove(event.getId());
                 Log.d("syncLocal.ldel", event.toString());
             }
 
@@ -144,7 +144,7 @@ public class GoogleSyncService extends JobService {
             while (itReturn.hasNext()) {
                 EventsDO newEvent = itReturn.next();
                 newEvent.setDirty(false);
-                mEventsDAO.updateByLocalId(newEvent);
+                mEventsDAO.update(newEvent);
                 Log.d("syncLocal.new", newEvent.toString());
             }
 
@@ -153,7 +153,7 @@ public class GoogleSyncService extends JobService {
             while (itReturn.hasNext()) {
                 EventsDO newEvent = itReturn.next();
                 newEvent.setDirty(false);
-                mEventsDAO.updateByLocalId(newEvent);
+                mEventsDAO.update(newEvent);
                 Log.d("syncLocal.update", newEvent.toString());
             }
 

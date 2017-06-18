@@ -11,15 +11,15 @@ public class WebCalendarContract implements BaseColumns {
     public static final Uri CONTENT_URI = Uri.parse("content://" + LocalCalendarProvider.AUTHORITY + "/" + TABLE_NAME);
 
     public static final String LOCAL_ID = "local";
-    public static final String GOOGLE_ID = "google";
-    public static final String OUTLOOK_ID = "outlook";
+    public static final String WEB_CALENDAR = "web_calendar";
+    public static final String WEB_ID = "web_id";
 
     public static final String SQL_CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
                     _ID + " INTEGER PRIMARY KEY," +
                     LOCAL_ID + " INTEGER," +
-                    GOOGLE_ID + " TEXT," +
-                    OUTLOOK_ID + " TEXT)";
+                    WEB_CALENDAR + " TEXT," +
+                    WEB_ID + " TEXT)";
     public static final String SQL_DROP_TABLE =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 }
