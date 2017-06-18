@@ -300,7 +300,7 @@ public class EventsDAO {
         values.put(WebCalendarContract.LOCAL_ID, localId);
         values.put(WebCalendarContract.WEB_CALENDAR, webCalendar.name());
         values.put(WebCalendarContract.WEB_ID, webId);
-        Uri result = mContentResolver.insert(WebCalendarContract.CONTENT_URI, values);
+        mContentResolver.insert(WebCalendarContract.CONTENT_URI, values);
     }
 
     /**
