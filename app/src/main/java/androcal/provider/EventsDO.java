@@ -14,7 +14,7 @@ public class EventsDO {
     public static final int STATUS_CANCEL = 2;
 
     public enum Source {
-        NONE, GOOGLE, OTHER;
+        NONE, OTHER, GOOGLE, OUTLOOK;
     }
 
     protected long id;
@@ -22,10 +22,31 @@ public class EventsDO {
     protected Date start;
     protected Date end;
     protected int status;
-    protected Source source;
-    protected String refId;
+    //    protected Source source;
+//    protected String refId;
     protected boolean dirty = false;
-    protected Map<String, String> customFields = new HashMap<String, String>();
+    protected Map<String, String> customFields = new HashMap<>();
+//    protected Map<Source, String> webIds = new HashMap<>();
+
+/*    public Map<Source, String> getWebIds() {
+        return webIds;
+    }
+
+    public void setWebIds(Map<Source, String> webIds) {
+        this.webIds = webIds;
+    }
+
+    public void setWebId(Source source, String id) {
+        webIds.put(source, id);
+    }
+
+    public String getWebId(Source source) {
+        return webIds.get(source);
+    }
+
+    public void removeWebId(Source source) {
+        webIds.remove(source);
+    }*/
 
     public Map<String, String> getCustomFields() {
         return customFields;
@@ -83,21 +104,21 @@ public class EventsDO {
         this.status = status;
     }
 
-    public Source getSource() {
+    /*public Source getSource() {
         return source;
-    }
+    }*/
 
-    public void setSource(Source source) {
+    /*public void setSource(Source source) {
         this.source = source;
-    }
+    }*/
 
-    public String getRefId() {
+    /*public String getRefId() {
         return refId;
-    }
+    }*/
 
-    public void setRefId(String refId) {
+    /*public void setRefId(String refId) {
         this.refId = refId;
-    }
+    }*/
 
     public boolean isDirty() {
         return dirty;
@@ -120,8 +141,8 @@ public class EventsDO {
                 "name=" + (this.name == null ? "null" : this.name) + "; " +
                 "start=" + (this.start == null ? "null" : this.start.toString()) + "; " +
                 "end=" + (this.end == null ? "null" : this.end.toString()) + "; " +
-                "refId=" + (this.refId == null ? "null" : this.refId) + "; " +
-                "source=" + (this.source == null ? "null" : this.source) + "; " +
+                /*"refId=" + (this.refId == null ? "null" : this.refId) + "; " +
+                "source=" + (this.source == null ? "null" : this.source) + "; " +*/
                 "dirty=" + (this.dirty ? "1" : "0") + "; " +
                 "status=" + this.status;
     }
